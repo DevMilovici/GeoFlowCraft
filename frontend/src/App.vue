@@ -35,7 +35,8 @@ export default {
 
 </script>
 
-<style scoped lang="scss">
+<style lang="scss">
+@import url("../node_modules/ol/ol.css");
 
 nav a.router-link-exact-active {
   color: var(--color-text);
