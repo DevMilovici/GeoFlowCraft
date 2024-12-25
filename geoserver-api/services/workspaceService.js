@@ -4,10 +4,6 @@ const geoserverConfig = require('../config/geoserverConfig');
 async function createWorkspace(workspaceDetails) {
     try {
         const url = `${geoserverConfig.url}/rest/workspaces`;
-        const config = {
-            auth: geoserverConfig.auth,
-            headers: { 'Content-Type': 'application/json' }
-        };
 
         const payload = {
             workspace: {
@@ -15,7 +11,7 @@ async function createWorkspace(workspaceDetails) {
             }
         };
 
-        const response = await axios.post(url, payload, config);
+        const response = await axios.post(url, payload, getGeoserverConfig());
         console.log(`Workspace created successfully:`, response.data);
         return response.data;
     } catch (error) {
@@ -27,17 +23,20 @@ async function createWorkspace(workspaceDetails) {
 async function getWorkspaces() {
     try {
         const url = `${geoserverConfig.url}/rest/workspaces`;
-        const config = {
-            auth: geoserverConfig.auth,
-            headers: { 'Content-Type': 'application/json' }
-        };
 
-        const response = await axios.get(url, config);
+        const response = await axios.get(url, getGeoserverConfig());
         return response.data;
     } catch (error) {
         console.error('Error getting workspace:', error.response?.data || error.message);
         throw new Error(error.response?.data || error.message);
     }
+}
+
+function getGeoserverConfig() {
+    return {
+        auth: geoserverConfig.auth,
+        headers: { 'Content-Type': 'application/json' }
+    };
 }
 
 module.exports = {
