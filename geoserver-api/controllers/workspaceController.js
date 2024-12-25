@@ -22,6 +22,28 @@ exports.getWorkspaces = async (request, response) => {
     }
 }
 
+exports.updateWorkspace = async (request, response) => {
+    try {
+        const result = await workspaceService.updateWorkspace(request.body);
+        response.status(200).json({ success: true });
+    } catch(error) {
+        response.status(500).json(
+            getInternalError(error)
+        );
+    }
+}
+
+exports.deleteWorkspace = async (request, response) => {
+    try {
+        const result = await workspaceService.deleteWorkspace({ name: request.params.name, recurse: request.query.recurse });
+        response.status(200).json({ success: true });
+    } catch(error) {
+        response.status(500).json(
+            getInternalError(error)
+        );
+    }
+}
+
 function getInternalError(error) {
     return { 
         success: false, 

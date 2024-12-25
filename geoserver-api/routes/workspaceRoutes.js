@@ -5,9 +5,9 @@ const router = express.Router();
 
 router.post('/workspaces', workspaceController.createWorkspace);
 router.get('/workspaces', workspaceController.getWorkspaces);
+router.put('/workspaces', workspaceController.updateWorkspace);
+router.delete('/workspaces/:name', workspaceController.deleteWorkspace);
 // TODOs
 // router.get('/workspaces/:id', workspaceController.getWorkspace);
-// router.put('/workspaces', workspaceController.updateWorkspace);
-// router.delete('/workspaces/:id', workspaceController.deleteWorkspace);
 
 module.exports = router;
