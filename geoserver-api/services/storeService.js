@@ -14,7 +14,6 @@ async function createCoverageStore(storeDetails) {
 
         // I. 1. Create uploads directory
         if(!fs.existsSync(baseFilePath)) {
-            console.log("Creating 'uploads' directory...");
             fs.mkdirSync(baseFilePath);
         }
         // I.2. Save file to uploads directory
@@ -25,9 +24,8 @@ async function createCoverageStore(storeDetails) {
         readable.push(null);
         readable.pipe(fs.createWriteStream(localFilePath));
         // I.3. Upload file to GeoServer
-        let remoteFilePath = `/home/splonus/data/${storeDetails.file.name}`;
+        let remoteFilePath = `${geoserverConfig.vmBaseRemotePath}/${storeDetails.file.name}`;
         console.log(`Uploading file to GeoServer filesystem ('${remoteFilePath}')...`)
-        console.log(geoserverConfig.ssh)
         await uploadFileToHost(geoserverConfig.ssh, localFilePath, remoteFilePath);
         // I.4. Create store using the uploaded file
         const payload = {
@@ -35,13 +33,12 @@ async function createCoverageStore(storeDetails) {
                 name: storeDetails.store.name,
                 workspace: storeDetails.workspaceName,
                 type: 'GeoTIFF',
-                url: `file:${remoteFilePath}`,
+                url: `file:${geoserverConfig.baseRemotePath}/${storeDetails.file.name}`,
                 enabled: true
             },
         };
 
         const response = await axios.post(url, payload, getGeoserverConfig());
-        console.log(`Coverage store created successfully:`, response.data);
         return response.data;
     } catch (error) {
         console.error('Error creating coverage store:', error.response?.data || error.message);
@@ -51,7 +48,7 @@ async function createCoverageStore(storeDetails) {
 
 async function createDataStore(params) {
     try {
-        
+        // TODO:
     } catch (error) {
         console.error('Error creating data store:', error.response?.data || error.message);
         throw new Error(error.response?.data || error.message);
@@ -72,6 +69,27 @@ async function getStores(workspaceName) {
         }
     } catch (error) {
         console.error('Error getting stores:', error.response?.data || error.message);
+        throw new Error(error.response?.data || error.message);
+    }
+}
+
+async function getStore(workspaceName, storeName, storeType) {
+    try {
+        switch (storeType) {
+            case "coverage":
+                const url = `${geoserverConfig.url}/rest/workspaces/${workspaceName}/coveragestores/${storeName}`;
+                const response = await axios.get(url, getGeoserverConfig());
+                return response.data;
+            default:
+                throw "Unknown store type!";
+        }
+
+    } catch (error) {
+        if(error.status >= 400 && error.status < 500) {
+            return null;
+        }
+
+        console.error('Error getting store:', error.response?.data || error.message);
         throw new Error(error.response?.data || error.message);
     }
 }
@@ -103,5 +121,6 @@ async function uploadFileToHost(hostConfig, localFilePath, remoteFilePath) {
 module.exports = {
     createCoverageStore,
     createDataStore,
+    getStore,
     getStores
 }

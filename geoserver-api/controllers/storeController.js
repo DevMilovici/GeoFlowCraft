@@ -18,7 +18,6 @@ async function createStore(request, response) {
             // A coverage store describes how access a raster data source.
             // - https://docs.geoserver.org/latest/en/api/#1.0.0/coveragestores.yaml
             case "coverage":
-                console.log("coverage");
                 result = await storeService.createCoverageStore({
                     workspaceName: workspaceName,
                     store: request.body.store,
