@@ -32,6 +32,20 @@ async function getWorkspaces() {
     }
 }
 
+async function getWorkspace(workspaceName) {
+    try {
+        const url = `${geoserverConfig.url}/rest/workspaces/${workspaceName}`;
+        const response = await axios.get(url, getGeoserverConfig());
+        return response.data;
+    } catch (error) {
+        if(error.status >= 400 && error.status < 500) {
+            return null;
+        }
+        console.error('Error getting workspace:', error.response?.data || error.message);
+        throw new Error(error.response?.data || error.message);
+    }
+}
+
 async function updateWorkspace(workspaceToUpdateDetails) {
     try {
         const url = `${geoserverConfig.url}/rest/workspaces/${workspaceToUpdateDetails.name}`;
@@ -76,6 +90,7 @@ function getGeoserverConfig() {
 module.exports = {
     createWorkspace,
     getWorkspaces,
+    getWorkspace,
     updateWorkspace,
     deleteWorkspace
 }
