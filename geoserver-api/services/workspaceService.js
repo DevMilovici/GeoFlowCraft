@@ -10,9 +10,8 @@ async function createWorkspace(workspaceDetails) {
                 name: workspaceDetails.name
             }
         };
-
         const response = await axios.post(url, payload, getGeoserverConfig());
-        console.log(`Workspace created successfully:`, response.data);
+
         return response.data;
     } catch (error) {
         console.error('Error creating workspace:', error.response?.data || error.message);
@@ -23,7 +22,6 @@ async function createWorkspace(workspaceDetails) {
 async function getWorkspaces() {
     try {
         const url = `${geoserverConfig.url}/rest/workspaces`;
-
         const response = await axios.get(url, getGeoserverConfig());
         return response.data;
     } catch (error) {
@@ -56,7 +54,6 @@ async function updateWorkspace(workspaceToUpdateDetails) {
             }
         };
         const response = await axios.put(url, payload, getGeoserverConfig());
-
         return response.data;
     } catch (error) {
         console.error('Error updating workspace:', error.response?.data || error.message);
@@ -72,7 +69,6 @@ async function deleteWorkspace(workspaceToDeleteDetails) {
         }
 
         const response = await axios.delete(url, getGeoserverConfig());
-        
         return response.data;
     } catch (error) {
         console.error('Error deleting workspace:', error.response?.data || error.message);

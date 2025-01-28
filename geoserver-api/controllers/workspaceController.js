@@ -11,6 +11,17 @@ exports.createWorkspace = async (request, response) => {
     }
 };
 
+exports.getWorkspace = async (request, response) => {
+    try {
+        const result = await workspaceService.getWorkspace(request.query.name);
+        response.status(200).json({ success: true, workspace: result });
+    } catch (error) {
+        response.status(500).json(
+            getInternalError(error)
+        );
+    }
+}
+
 exports.getWorkspaces = async (request, response) => {
     try {
         const result = await workspaceService.getWorkspaces();

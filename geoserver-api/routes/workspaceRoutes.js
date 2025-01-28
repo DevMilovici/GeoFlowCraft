@@ -5,8 +5,7 @@ const router = express.Router();
 
 router.post('/workspaces', workspaceController.createWorkspace);
 router.get('/workspaces', workspaceController.getWorkspaces);
-// TODO: Should we implement this route?
-// router.get('/workspaces/:id', workspaceController.getWorkspace);
+router.get('/workspaces/:name', workspaceController.getWorkspace);
 router.put('/workspaces', workspaceController.updateWorkspace);
 router.delete('/workspaces/:name', workspaceController.deleteWorkspace);
 
