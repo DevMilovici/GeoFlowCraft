@@ -1,9 +1,9 @@
 <template>
-  <div class="w-full">
+  <div class="flex flex-col w-full h-full">
     <!-- Navbar -->
     <AppNavBar/>
     <!-- Page content -->
-    <RouterView class="w-full" />
+    <RouterView class="w-full h-full" />
   </div>
 </template>
 

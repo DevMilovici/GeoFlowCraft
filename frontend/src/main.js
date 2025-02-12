@@ -5,6 +5,9 @@ import { createPinia } from 'pinia';
 import PrimeVue from "primevue/config";
 import Aura from "@primevue/themes/aura";
 import Button from "primevue/button";
+import ListBox from "primevue/listbox";
+
+import 'primeicons/primeicons.css'
 
 import App from './App.vue';
 import router from './router';
@@ -17,7 +20,8 @@ app.use(PrimeVue, {
     }
 });
 
-app.component("Button", Button);
+app.component("PrimeButton", Button);
+app.component("PrimeListBox", ListBox);
 
 app.use(createPinia());
 app.use(router);
