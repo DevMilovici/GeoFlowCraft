@@ -1,5 +1,5 @@
-const workspaceService = require("../services/workspaceService");
-const storeService = require("../services/storeService");
+const workspaceService = require("../../services/geoserver/workspaceService");
+const storeService = require("../../services/geoserver/storeService");
 
 async function createStore(request, response) {
     try {

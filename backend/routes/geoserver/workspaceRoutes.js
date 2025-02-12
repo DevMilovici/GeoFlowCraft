@@ -1,5 +1,5 @@
 const express = require("express");
-const workspaceController = require("../../controllers/workspaceController");
+const workspaceController = require("../../controllers/geoserver/workspaceController");
 
 const router = express.Router();
 

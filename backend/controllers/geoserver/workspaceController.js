@@ -1,4 +1,4 @@
-const workspaceService = require("../services/workspaceService");
+const workspaceService = require("../../services/geoserver/workspaceService");
 
 exports.createWorkspace = async (request, response) => {
     try {

@@ -1,5 +1,5 @@
 const axios = require('axios');
-const geoserverConfig = require('../config/geoserverConfig');
+const geoserverConfig = require('../../config/geoserverConfig');
 
 async function createWorkspace(workspaceDetails) {
     try {

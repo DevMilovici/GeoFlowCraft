@@ -2,7 +2,7 @@ const axios = require('axios');
 const fs = require("fs");
 const Readable = require("stream").Readable;
 const { NodeSSH } = require("node-ssh");
-const geoserverConfig = require('../config/geoserverConfig');
+const geoserverConfig = require('../../config/geoserverConfig');
 
 async function createCoverageStore(storeDetails) {
     try {

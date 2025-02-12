@@ -1,6 +1,6 @@
-const workspaceService = require("../services/workspaceService");
-const storeService = require("../services/storeService");
-const layerService = require("../services/layerService");
+const workspaceService = require("../../services/geoserver/workspaceService");
+const storeService = require("../../services/geoserver/storeService");
+const layerService = require("../../services/geoserver/layerService");
 
 async function createLayer(request, response) {
     try {
