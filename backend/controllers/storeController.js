@@ -28,7 +28,7 @@ async function createStore(request, response) {
             // - It can be a file (such as a shapefile), a database (such as PostGIS), or a server (such as a remote Web Feature Service).
             // - https://docs.geoserver.org/latest/en/api/#1.0.0/datastores.yaml
             case "data":
-                console.log("data_store");
+                console.log("TODO: data_store");
                 //result = await storeService.createDataStore(workspaceName, storeName);
                 break;
             default:

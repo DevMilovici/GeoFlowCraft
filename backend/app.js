@@ -1,7 +1,7 @@
 const express = require('express');
-const workspaceRoutes = require("./routes/workspaceRoutes");
-const storeRoutes = require("./routes/storeRoutes");
-const layerRoutes = require("./routes/layerRoutes");
+const workspaceRoutes = require("./routes/geoserver/workspaceRoutes");
+const storeRoutes = require("./routes/geoserver/storeRoutes");
+const layerRoutes = require("./routes/geoserver/layerRoutes");
 const bodyParser = require("body-parser");
 
 const app = express();
@@ -9,9 +9,9 @@ const app = express();
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json({ limit: '10000mb', extended: true }));
 
-app.use('/api', workspaceRoutes);
-app.use('/api', storeRoutes);
-app.use('/api', layerRoutes)
+app.use('/api/geoserver', workspaceRoutes);
+app.use('/api/geoserver', storeRoutes);
+app.use('/api/geoserver', layerRoutes)
 
 // TODOs
 // app.use('/api/layers', layerRoutes);

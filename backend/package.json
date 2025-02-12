@@ -1,5 +1,5 @@
 {
-  "name": "geoserver-api",
+  "name": "backend",
   "version": "1.0.0",
   "description": "REST API for managin GeoServer resources (workspaces, data stores, layers, etc.).",
   "main": "server.js",

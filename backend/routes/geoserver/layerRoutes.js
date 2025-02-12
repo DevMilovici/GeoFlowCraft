@@ -1,5 +1,5 @@
 const express = require("express");
-const layerController = require("../controllers/layerController");
+const layerController = require("../../controllers/layerController");
 
 const router = express.Router();
 
