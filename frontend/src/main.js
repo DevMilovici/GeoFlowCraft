@@ -6,6 +6,7 @@ import PrimeVue from "primevue/config";
 import Aura from "@primevue/themes/aura";
 import Button from "primevue/button";
 import ListBox from "primevue/listbox";
+import Tooltip from 'primevue/tooltip';
 
 import 'primeicons/primeicons.css'
 
@@ -22,6 +23,7 @@ app.use(PrimeVue, {
 
 app.component("PrimeButton", Button);
 app.component("PrimeListBox", ListBox);
+app.directive("tooltip", Tooltip);
 
 app.use(createPinia());
 app.use(router);
