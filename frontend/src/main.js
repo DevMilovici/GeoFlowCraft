@@ -5,8 +5,11 @@ import { createPinia } from 'pinia';
 import PrimeVue from "primevue/config";
 import Aura from "@primevue/themes/aura";
 import Button from "primevue/button";
+import InputText from "primevue/inputtext";
+import Textarea from 'primevue/textarea';
 import ListBox from "primevue/listbox";
 import Tooltip from 'primevue/tooltip';
+import Dialog from 'primevue/dialog';
 
 import 'primeicons/primeicons.css'
 
@@ -22,7 +25,10 @@ app.use(PrimeVue, {
 });
 
 app.component("PrimeButton", Button);
+app.component("PrimeInputText", InputText);
+app.component("PrimeTextarea", Textarea);
 app.component("PrimeListBox", ListBox);
+app.component("PrimeDialog", Dialog);
 app.directive("tooltip", Tooltip);
 
 app.use(createPinia());

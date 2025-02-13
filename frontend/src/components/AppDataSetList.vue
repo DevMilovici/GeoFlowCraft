@@ -8,7 +8,7 @@
                 </span>
             </div>
             <PrimeButton rounded type="button" icon="pi pi-plus" severity="success" size="small"
-                v-tooltip.bottom="'Create dataset'" />
+                v-tooltip.bottom="'Create dataset'" @click="showCreateDataSetCatalog" />
         </div>
         <div class="flex flex-col gap-1 w-full">
             <PrimeListBox v-model="selectedDataSet" :options="dataSets" optionLabel="name" fluid class="w-full">
@@ -20,8 +20,8 @@
             </PrimeListBox>
         </div>
     </div>
-    <!-- DataSets controls -->
     <div class="w-full flex gap-1 items-center justify-center">
+        <!-- Display data set information -->
         <PrimeButton :disabled="selectedDataSet === null" type="button" severity="info" label="Details" icon="pi pi-eye"
             size="small" class="text-xs" />
     </div>
@@ -29,6 +29,7 @@
 
 <script>
 import useDataSetStore from "@/stores/dataSet";
+import useDialogStore from "@/stores/dialog";
 
 export default {
     name: "AppDataSetList",
@@ -88,6 +89,12 @@ export default {
         const dataSetStore = useDataSetStore();
         this.dataSets.length = 0;
         this.dataSets.push(...await dataSetStore.getDataSets());
+    },
+    methods: {
+        showCreateDataSetCatalog() {
+            const dialogStore = useDialogStore();
+            dialogStore.showDataSetCreateDialog();
+        }
     }
 }
 
