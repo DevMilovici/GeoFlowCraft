@@ -6,6 +6,7 @@ const workspaceRoutes = require("./routes/geoserver/workspaceRoutes");
 const storeRoutes = require("./routes/geoserver/storeRoutes");
 const layerRoutes = require("./routes/geoserver/layerRoutes");
 const dataSetRoutes = require("./routes/dataSetRoutes");
+const dataLayerRoutes = require("./routes/dataLayerRoutes");
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.use('/api/geoserver', storeRoutes);
 app.use('/api/geoserver', layerRoutes)
 
 app.use("/api/dataset", dataSetRoutes);
+app.use("/api/datalayer", dataLayerRoutes);
 
 app.use((error, request, response, next) => {
     response.status(500).json({
