@@ -16,7 +16,7 @@ async function createDataSet(request, response) {
 
         const result = await dataSetService.createDataSet(dataSetName, dataSetDescription);
 
-        response.status(200).json({ sucess: true, dataSet: result });
+        response.status(200).json({ success: true, dataSet: result });
     } catch (error) {
         response.status(200).json(getInternalError(error));
     }
