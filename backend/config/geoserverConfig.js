@@ -13,5 +13,6 @@ module.exports = {
         password: process.env.GEOSERVER_VM_SSH_PASSWORD
     },
     vmBaseRemotePath: process.env.GEOSERVER_VM_REMOTE_BASE_PATH,
-    baseRemotePath: process.env.GEOSERVER_REMOTE_BASE_PATH
+    baseRemotePath: process.env.GEOSERVER_REMOTE_BASE_PATH,
+    defaultWorkspace: process.env.GEOSERVER_DEFAULT_WORKSPACE
 };
