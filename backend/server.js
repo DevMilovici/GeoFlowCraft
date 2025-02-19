@@ -1,16 +1,12 @@
-const dotenv = require('dotenv');
 const app = require("./app");
 
 const { default: mongoose } = require('mongoose');
+const serverConfig = require('./config/serverConfig');
 const dbConfig = require("./config/dbConfig");
 const DataSetModel = require("./db/models/dataSet");
 
-dotenv.config();
-
-const PORT = process.env.PORT || 5555;
-
 try {
-    app.listen(PORT, async () => {
+    app.listen(serverConfig.listenPort, async () => {
         console.log("Connection to DB...");
         await mongoose.connect(dbConfig.url, dbConfig.options);
         console.log("Connected to DB!")
@@ -28,7 +24,7 @@ try {
             });
         }
     
-        console.log(`Server is running on port ${PORT}...`);
+        console.log(`Server is running on port ${serverConfig.listenPort}...`);
     });
 } catch (error) {
     console.log(error);
