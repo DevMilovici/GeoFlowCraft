@@ -36,53 +36,12 @@ export default {
     data() {
         return {
             selectedDataSet: null,
-            dataSets: [
-                {
-                    name: "DataSet_0",
-                    description: "This is DataSet_0...",
-                    layers: []
-                },
-                {
-                    name: "DataSet_1",
-                    description: "This is DataSet_0...",
-                    layers: []
-                },
-                {
-                    name: "DataSet_2",
-                    description: "This is DataSet_0...",
-                    layers: []
-                },
-                {
-                    name: "DataSet_3",
-                    description: "This is DataSet_0...",
-                    layers: []
-                },
-                {
-                    name: "DataSet_4",
-                    description: "This is DataSet_0...",
-                    layers: []
-                },
-                {
-                    name: "DataSet_5",
-                    description: "This is DataSet_0...",
-                    layers: []
-                },
-                {
-                    name: "DataSet_6",
-                    description: "This is DataSet_0...",
-                    layers: []
-                },
-                {
-                    name: "DataSet_7",
-                    description: "This is DataSet_0...",
-                    layers: []
-                },
-                {
-                    name: "DataSet_8",
-                    description: "This is DataSet_0...",
-                    layers: []
-                }
-            ]
+        }
+    },
+    computed: {
+        dataSets() {
+            const dataSetStore = useDataSetStore();
+            return dataSetStore.dataSets;
         }
     },
     async mounted() {

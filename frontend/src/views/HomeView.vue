@@ -3,7 +3,8 @@
   <div id="map" class="relative h-full">
     <div class="absolute z-[100] right-1 top-1 p-1 bg-gray-800 w-[250px] border-2 border-gray-300 rounded-md">
       <AppDataSetList />
-      <AppDataSetCreateDialog />
+      <AppDataSetCreateDialog @created-data-set="onDataSetCreated" />
+      <PrimeToast />
     </div>
   </div>
 
@@ -40,7 +41,11 @@ export default {
     });
   },
   computed: {},
-  methods: {}
+  methods: {
+    onDataSetCreated() {
+      this.$toast.add({ severity: "success", summary: "Success", detail: "The dataset has been successfully created!", life: 3000 });
+    }
+  }
 }
 </script>
 

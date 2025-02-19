@@ -18,6 +18,15 @@ export default defineStore('dataSet', {
       }
       
       return this.dataSets;
+    },
+    async createDataSet(dataSet) {
+      let response = await axios.post(`${API_URL}/dataset`, dataSet);
+      let responseData = response?.data;
+      if(responseData?.success) {
+        this.dataSets.push(responseData.dataSet);
+      }
+
+      return responseData;
     }
   }
 })
