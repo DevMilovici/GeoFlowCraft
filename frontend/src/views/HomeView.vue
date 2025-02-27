@@ -2,8 +2,10 @@
 
   <div id="map" class="relative h-full">
     <div class="absolute z-[100] right-1 top-1 p-1 bg-gray-800 w-[250px] border-2 border-gray-300 rounded-md">
-      <AppDataSetList />
+      <AppDataSetList/>
+      <!-- Dialogs -->
       <AppDataSetCreateDialog @created-data-set="onDataSetCreated" />
+      <AppDataSetDetailsDialog />
       <PrimeToast />
     </div>
   </div>
@@ -18,10 +20,11 @@ import View from 'ol/View.js';
 
 import AppDataSetList from "../components/AppDataSetList.vue";
 import AppDataSetCreateDialog from "../components/dialogs/AppDataSetCreateDialog.vue";
+import AppDataSetDetailsDialog from "@/components/dialogs/AppDataSetDetailsDialog.vue";
 
 export default {
   name: "HomeView",
-  components: { AppDataSetList, AppDataSetCreateDialog },
+  components: { AppDataSetList, AppDataSetCreateDialog, AppDataSetDetailsDialog },
   data() {
     return {}
   },

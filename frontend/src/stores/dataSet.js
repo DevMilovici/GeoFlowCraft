@@ -1,32 +1,29 @@
 import { defineStore } from 'pinia'
-import axios from 'axios';
-
-const API_URL = `${import.meta.env.VITE_API_URL}`;
+import dataSetService from '@/services/dataSetService';
 
 export default defineStore('dataSet', {
   state: () => ({
-    dataSets: []
+    selectedDataSet: null
   }),
   actions: {
-    async getDataSets() {
-      this.dataSets.length = 0;
-
-      let response = await axios.get(`${API_URL}/dataset`);
-      
-      if(response?.data?.success) {  
-        this.dataSets = response.data.dataSets;
-      }
-      
-      return this.dataSets;
-    },
     async createDataSet(dataSet) {
-      let response = await axios.post(`${API_URL}/dataset`, dataSet);
-      let responseData = response?.data;
-      if(responseData?.success) {
-        this.dataSets.push(responseData.dataSet);
+      let response = await dataSetService.createDataSet(dataSet);
+
+      if(response?.success) {
+        this.dataSets.push(response.dataSet);
       }
 
-      return responseData;
+      return response;
+    },
+    async setSelectedDataSet(dataSet) {
+      console.log('setSelectedDataSet(dataSet)')
+      console.log(dataSet);
+      let response = await dataSetService.getDataSet(dataSet._id);
+      console.log(response);
+      if(response.success) {
+        this.selectedDataSet = response.dataSet;
+        console.log(this.selectedDataSet)
+      }
     }
   }
 })
