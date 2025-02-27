@@ -10,6 +10,16 @@ async function getDataSets() {
     }
 }
 
+async function getDataSet(id) {
+    try {
+        let dataSet = await DataSetModel.findById(id);
+
+        return dataSet;
+    } catch (error) {
+        throw error;
+    }
+}
+
 async function createDataSet(name, description) {
     try {
         let newDataSet = new DataSetModel({ name: name, description: description });
@@ -35,6 +45,7 @@ async function deleteDataSet(name) {
 
 module.exports = {
     getDataSets,
+    getDataSet,
     createDataSet,
     deleteDataSet
 }
