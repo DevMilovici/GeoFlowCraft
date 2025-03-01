@@ -4,7 +4,7 @@
             <!-- DataSetName -->
             <PrimeIftaLabel>
                 <PrimeInputText id="name" name="name" type="text" placeholder="Name" fluid 
-                    :value="selectedDataSet?.name" :disabled="false" autocomplete="off"
+                    :value="selectedDataSet?.name" :disabled="true" autocomplete="off"
                 />
                 <label for="name">Name</label>
             </PrimeIftaLabel>
@@ -13,6 +13,7 @@
                 <span class="text-zinc-500">Layers</span>
                 <PrimeListBox
                     :options="selectedDataSet?.layers"
+                    emptyMessage="There are no layers."
                 >
                     <template #option="slotProps">
                         <div class="w-full flex flex-row gap-2 items-center justify-between">
@@ -26,7 +27,7 @@
                 <div class="w-full flex gap-2 justify-center items-center">
                     <PrimeButton rounded type="button" icon="pi pi-plus" severity="success" size="small"
                         v-tooltip.bottom="'Add new layer'" variant="text" 
-                        @click="" />
+                        @click="showCreateDataLayerCatalog" />
                     <PrimeButton rounded type="button" icon="pi pi-search-plus" severity="success" size="small"
                         v-tooltip.bottom="'Add existing layer'" variant="text" 
                         @click="" />
@@ -58,6 +59,10 @@ export default {
         ...mapState(useDataSetStore, ["selectedDataSet"])
     },
     methods: {
+        showCreateDataLayerCatalog() {
+            const dialogStore = useDialogStore();
+            dialogStore.showDataLayerCreateCatalog();
+        },
         close() {
             const dialogStore = useDialogStore();
             dialogStore.hideDataSetDetailsDialog();

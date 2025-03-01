@@ -3,22 +3,30 @@ import { defineStore } from "pinia";
 export default defineStore('dialog', {
     state: () => ({
         dataSetCreateDialogVisible: false,
-        dataSetDetailsDialogVisible: false
+        dataSetDetailsDialogVisible: false,
+        dataLayerCreateDialogVisible: false
     }),
     actions: {
-        // DataSetCreate
+        // DataSetCreateDialog
         showDataSetCreateDialog() {
             this.dataSetCreateDialogVisible = true;
         },
         hideDataSetCreateDialog() {
             this.dataSetCreateDialogVisible = false;
         },
-        // DataSetDetails
+        // DataSetDetailsDialog
         showDataSetDetailsDialog() {
             this.dataSetDetailsDialogVisible = true;
         },
         hideDataSetDetailsDialog() {
             this.dataSetDetailsDialogVisible = false;
+        },
+        // DataLayerCreateDialog
+        showDataLayerCreateCatalog() {
+            this.dataLayerCreateDialogVisible = true;
+        },
+        hideDataLayerCreateCatalog() {
+            this.dataLayerCreateDialogVisible = false;
         }
     }
 })

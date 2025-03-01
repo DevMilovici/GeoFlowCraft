@@ -6,6 +6,7 @@
       <!-- Dialogs -->
       <AppDataSetCreateDialog @created-data-set="onDataSetCreated" />
       <AppDataSetDetailsDialog />
+      <AppDataLayerCreateDialog @created-data-layer="onDataLayerCreated"/>
       <PrimeToast />
     </div>
   </div>
@@ -21,10 +22,14 @@ import View from 'ol/View.js';
 import AppDataSetList from "../components/AppDataSetList.vue";
 import AppDataSetCreateDialog from "../components/dialogs/AppDataSetCreateDialog.vue";
 import AppDataSetDetailsDialog from "@/components/dialogs/AppDataSetDetailsDialog.vue";
+import AppDataLayerCreateDialog from "@/components/dialogs/AppDataLayerCreateDialog.vue";
 
 export default {
   name: "HomeView",
-  components: { AppDataSetList, AppDataSetCreateDialog, AppDataSetDetailsDialog },
+  components: { 
+    AppDataSetList, AppDataSetCreateDialog, AppDataSetDetailsDialog,
+    AppDataLayerCreateDialog
+  },
   data() {
     return {}
   },
@@ -47,6 +52,9 @@ export default {
   methods: {
     onDataSetCreated() {
       this.$toast.add({ severity: "success", summary: "Success", detail: "The dataset has been successfully created!", life: 3000 });
+    },
+    onDataLayerCreated() {
+      this.$toast.add({ severity: "success", summary: "Success", detail: "The datalayer has been successfully created!", life: 3000 });
     }
   }
 }

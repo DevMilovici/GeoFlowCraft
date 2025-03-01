@@ -1,8 +1,10 @@
 import { defineStore } from 'pinia'
 import dataSetService from '@/services/dataSetService';
+import dataLayerService from '@/services/dataLayerService';
 
 export default defineStore('dataSet', {
   state: () => ({
+    dataSets: [],
     selectedDataSet: null
   }),
   actions: {
@@ -15,15 +17,35 @@ export default defineStore('dataSet', {
 
       return response;
     },
-    async setSelectedDataSet(dataSet) {
-      console.log('setSelectedDataSet(dataSet)')
-      console.log(dataSet);
-      let response = await dataSetService.getDataSet(dataSet._id);
-      console.log(response);
-      if(response.success) {
-        this.selectedDataSet = response.dataSet;
-        console.log(this.selectedDataSet)
+    setDataSets(dataSets) {
+      this.dataSets.length = 0;
+      this.dataSets.push(...dataSets);
+    },
+    async loadDataSets() {
+      const response = await dataSetService.getDataSets();
+      if(response?.success) {
+        this.setDataSets(response.dataSets);
+        if(this.selectedDataSet) {
+          await this.loadDataSet(this.selectedDataSet)
+        }
       }
+      return response;
+    },
+    async loadDataSet(dataSet) {
+      let response = await dataSetService.getDataSet(dataSet.id);
+      if(response?.success) {
+        this.selectedDataSet = response.dataSet;
+      }
+      return response;
+    },
+    async createDataLayerForDataSet(createDataLayerRequest) {
+      const response = await dataLayerService.createDataLayer(createDataLayerRequest);
+
+      if(response.success) {
+        await this.loadDataSets();
+      }
+
+      return response;
     }
   }
 })
