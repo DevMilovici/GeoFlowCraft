@@ -1,7 +1,7 @@
 function getInternalError(error) {
     return { 
         success: false, 
-        message: error.message ?? `Something went wrong` 
+        error: error.message ?? `Something went wrong` 
     };
 }
 

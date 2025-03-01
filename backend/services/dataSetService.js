@@ -1,10 +1,23 @@
+const DataLayerModel = require("../db/models/dataLayer");
 const DataSetModel = require("../db/models/dataSet");
 
 async function getDataSets() {
     try {
-        let dataSets = await DataSetModel.find();
+        let result = [];
 
-        return dataSets;
+        let dataSets = await DataSetModel.find();
+        if(dataSets?.length > 0) {
+            for (const dataSet of dataSets) {
+                result.push({
+                    id: dataSet._id,
+                    name: dataSet.name,
+                    description: dataSet.description,
+                    layers: dataSet.layers
+                });
+            }
+        }
+
+        return result;
     } catch (error) {
         throw error;
     }
@@ -16,6 +29,25 @@ async function getDataSet(id) {
 
         return dataSet;
     } catch (error) {
+        throw error;
+    }
+}
+
+async function addDataLayer(dataSetId, dataLayerId) {
+    try {
+        let dataSet = await DataSetModel.findById(dataSetId);
+        if(!dataSet) {
+            throw `Error adding dataLayer (${dataLayerId}) to dataSet (${dataSetId}): DataSet doesn't exist!`
+        }
+        let dataLayer = await DataLayerModel.findById(dataLayerId);
+        if(!dataLayer) {
+            throw `Error adding dataLayer (${dataLayerId}) to dataSet (${dataSetId}): DataLayer doesn't exist!`
+        }
+        dataSet.layers.push(dataLayerId);
+        await dataSet.save();
+    } catch (error) {
+        console.log('Error adding dataLayer to dataSet');
+        console.log(error);
         throw error;
     }
 }
@@ -46,6 +78,7 @@ async function deleteDataSet(name) {
 module.exports = {
     getDataSets,
     getDataSet,
+    addDataLayer,
     createDataSet,
     deleteDataSet
 }

@@ -1,5 +1,6 @@
 const controllerUtils = require("../utils/controllerUtils");
 const dataLayerService = require("../services/dataLayerService");
+const dataSetService = require("../services/dataSetService");
 const workspaceService = require("../services/geoserver/workspaceService");
 const layerService = require("../services/geoserver/layerService");
 const serverConfig = require("../config/serverConfig");
@@ -83,7 +84,7 @@ async function createDataLayer(request, response) {
 
         // 6. Create store
         const storeName = request.body.geoserver?.store?.name ?? `store_${newDataLayerId}`;
-        const storeType = request.body.geoserver?.store?.type;
+        let storeType = request.body.geoserver?.store?.type;
         let storeCreateUrl = null;
         if(!storeType) {
             switch (fileExtension) {
@@ -180,6 +181,13 @@ async function createDataLayer(request, response) {
         );
 
         let newCreatedDataLayer = await dataLayerService.getDataLayer(newDataLayerId);
+
+        // 9. Add dataLayer to dataSet
+        let dataSetId = request.body.dataSetId;
+        if(dataSetId) {
+            console.log(`Adding DataLayer ('${newDataLayerId}') to DataSet ('${dataSetId}')...`);
+            await dataSetService.addDataLayer(dataSetId, newDataLayerId)
+        }
         // fileIndex++;
         // }
     
