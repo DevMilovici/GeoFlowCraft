@@ -12,7 +12,7 @@
         </div>
         <div class="flex flex-col gap-1 w-full">
             <PrimeListBox 
-                v-model="selectedDataSet" :options="dataSets" 
+                v-model="selectedDataSet" :options="dataSetStore.dataSets" 
                 @update:modelValue="displayDataSetDetails"
                 optionLabel="name" fluid class="w-full"
             >
@@ -23,10 +23,14 @@
                 </template>
             </PrimeListBox>
         </div>
+        <PrimeToast />
     </div>
 </template>
 
 <script>
+
+import { mapStores } from "pinia";
+
 import useDataSetStore from "@/stores/dataSet";
 import useDialogStore from "@/stores/dialog";
 
@@ -36,35 +40,40 @@ export default {
     name: "AppDataSetList",
     data() {
         return {
-            dataSets: [],
             selectedDataSet: null,
         }
     },
-    computed: {},
+    computed: {
+        ...mapStores(useDataSetStore, useDialogStore)
+    },
     emits: ["displayDataSetDetails"],
     async mounted() {
-        const dataSetStore = useDataSetStore();
-
-        const response = await dataSetService.getDataSets();
-        if(response?.success) {  
-            this.dataSets = response.dataSets;
-            dataSetStore.dataSets = response.dataSets;
+        try {
+            const dataSetStore = useDataSetStore();
+            const response = await dataSetStore.loadDataSets();
+            if(response?.success) { 
+            } else {
+                this.$toast.add({ severity: "error", summary: "Failed loading datasets!", detail: `Something went wrong on the backend side: ${response.error}`, life: 3000 });
+            }
+        } catch (error) {
+            this.$toast.add({ severity: "error", summary: "Failed loading datasets!", detail: error ?? "Something went wrong.", life: 3000 });
+            console.log(error)
         }
     },
     methods: {
         showCreateDataSetCatalog() {
-            const dialogStore = useDialogStore();
-            dialogStore.showDataSetCreateDialog();
+            this.dialogStore.showDataSetCreateDialog();
         },
-        displayDataSetDetails() {
+        async displayDataSetDetails() {
             if(this.selectedDataSet == null)
                 return;
-            
-            const dataSetStore = useDataSetStore();
-            dataSetStore.setSelectedDataSet(this.selectedDataSet);
-
-            const dialogStore = useDialogStore();
-            dialogStore.showDataSetDetailsDialog();
+        
+            const loadDataSetReponse = await this.dataSetStore.loadDataSet(this.selectedDataSet);
+            if(loadDataSetReponse.success) {
+                this.dialogStore.showDataSetDetailsDialog();
+            } else {
+                this.$toast.add({ severity: "error", summary: "Failed loading dataset!", detail: `Something went wrong on the backend side: ${response.error}`, life: 3000 });
+            }
         }
     }
 }
