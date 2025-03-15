@@ -2,9 +2,22 @@ const DataLayerModel = require("../db/models/dataLayer");
 
 async function getDataLayers() {
     try {
+        let result = [];
+
         let dataLayers = await DataLayerModel.find();
 
-        return dataLayers;
+        if(dataLayers?.length > 0) {
+            for(const dataLayer of dataLayers) {
+                result.push({
+                    id: dataLayer._id,
+                    name: dataLayer.name,
+                    description: dataLayer.description,
+                    geoserver: dataLayer.geoserver
+                })
+            }
+        }
+
+        return result;
     } catch (error) {
         throw error;
     }
@@ -12,7 +25,19 @@ async function getDataLayers() {
 
 async function getDataLayer(id) {
     try {
-        return await DataLayerModel.findById(id);
+        let result = null;
+        let dataLayer = await DataLayerModel.findById(id);
+        
+        if(dataLayer) {
+            result = {
+                id: dataLayer._id,
+                name: dataLayer.name,
+                description: dataLayer.description,
+                geoserver: dataLayer.geoserver
+            }
+        }
+
+        return result;
     } catch (error) {
         throw error;
     }

@@ -23,19 +23,9 @@ async function getDataLayers(request, response) {
 async function getDataLayer(request, response) {
     try {
         const dataLayerId = request.params.id;
-        let dataLayerResult = null
-        const dataLayer = await dataLayerService.getDataLayer(dataLayerId);
+        const result = await dataLayerService.getDataLayer(dataLayerId);
 
-        if(dataLayer) {
-            dataLayerResult = {
-                id: dataLayer._id,
-                name: dataLayer.name,
-                description: dataLayer.description,
-                geoserver: dataLayer.geoserver
-            }
-        }
-
-        response.status(200).json({ success: true, dataLayer: dataLayerResult });
+        response.status(200).json({ success: true, dataLayer: result });
     } catch (error) {
         response.status(200).json(controllerUtils.getInternalError(error));
     }
