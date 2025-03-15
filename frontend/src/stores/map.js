@@ -66,6 +66,7 @@ export default defineStore("map", {
                                 LAYERS: dataLayerResponse.dataLayer.geoserver.layer.name
                             }
                         }),
+                        custom: true,
                         name: dataLayerResponse.dataLayer.name,
                         id: dataLayerResponse.dataLayer.id
                     })
