@@ -34,8 +34,6 @@ import { mapStores } from "pinia";
 import useDataSetStore from "@/stores/dataSet";
 import useDialogStore from "@/stores/dialog";
 
-import dataSetService from "@/services/dataSetService";
-
 export default {
     name: "AppDataSetList",
     data() {
@@ -65,14 +63,18 @@ export default {
             this.dialogStore.showDataSetCreateDialog();
         },
         async displayDataSetDetails() {
-            if(this.selectedDataSet == null)
-                return;
-        
-            const loadDataSetReponse = await this.dataSetStore.loadDataSet(this.selectedDataSet);
-            if(loadDataSetReponse.success) {
-                this.dialogStore.showDataSetDetailsDialog();
-            } else {
-                this.$toast.add({ severity: "error", summary: "Failed loading dataset!", detail: `Something went wrong on the backend side: ${response.error}`, life: 3000 });
+            try {                
+                if(this.selectedDataSet == null)
+                    return;
+            
+                const loadDataSetReponse = await this.dataSetStore.loadDataSet(this.selectedDataSet);
+                if(loadDataSetReponse.success) {
+                    this.dialogStore.showDataSetDetailsDialog();
+                } else {
+                    this.$toast.add({ severity: "error", summary: "Failed loading dataset!", detail: `Something went wrong on the backend side: ${loadDataSetReponse.error}`, life: 3000 });
+                }
+            } catch (error) {
+                this.$toast.add({ severity: "error", summary: "Failed loading dataset!", detail: `Something went wrong: ${error}`, life: 3000 });
             }
         }
     }
