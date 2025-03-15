@@ -28,7 +28,8 @@
                                 />
                                 <PrimeButton 
                                     v-else
-                                    icon="pi pi-eye-slash" 
+                                    icon="pi pi-eye-slash"
+                                    severity="danger"
                                     variant="text" rounded 
                                     v-tooltip.bottom="'Show layer on map'"
                                     @click="showLayerOnMap(slotProps?.option)"
