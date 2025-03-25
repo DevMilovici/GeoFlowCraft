@@ -46,6 +46,15 @@ export default defineStore('dataSet', {
       }
 
       return response;
+    },
+    async removeLayer(layerId) {
+      const response = await dataSetService.removeDataLayer(this.selectedDataSet?.id, layerId);
+
+      if(response.success) {
+        await this.loadDataSets();
+      }
+
+      return response;
     }
   }
 })

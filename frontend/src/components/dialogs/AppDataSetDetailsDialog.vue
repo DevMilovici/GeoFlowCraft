@@ -19,21 +19,36 @@
                         <div class="w-full flex flex-row gap-2 items-center justify-between">
                             <div>{{ slotProps?.option?.name }}</div>
                             <div class="flex flex-row items-center">
-                                <PrimeButton 
-                                    v-if="visibleLayers?.indexOf(slotProps?.option?.id) >= 0"
-                                    icon="pi pi-eye" 
-                                    variant="text" rounded 
-                                    v-tooltip.bottom="'Hide layer'"
-                                    @click="hideLayerOnMap(slotProps?.option)"
-                                />
-                                <PrimeButton 
-                                    v-else
-                                    icon="pi pi-eye-slash"
-                                    severity="danger"
-                                    variant="text" rounded 
-                                    v-tooltip.bottom="'Show layer on map'"
-                                    @click="showLayerOnMap(slotProps?.option)"
-                                />
+                                <!-- Remove layer from dataset -->
+                                <div>
+                                    <PrimeButton 
+                                        icon="pi pi-times" 
+                                        severity="danger"
+                                        variant="text" rounded 
+                                        v-tooltip.bottom="'Remove layer from dataset'"
+                                        @click="removeLayerFromDataset(slotProps?.option)"
+                                    />
+                                </div>
+                                <!-- Show/Hide layer -->
+                                <div>
+                                    <!-- Show layer on map button -->
+                                    <PrimeButton 
+                                        v-if="visibleLayers?.indexOf(slotProps?.option?.id) >= 0"
+                                        icon="pi pi-eye" 
+                                        variant="text" rounded 
+                                        v-tooltip.bottom="'Hide layer'"
+                                        @click="hideLayerOnMap(slotProps?.option)"
+                                    />
+                                    <!-- Remove (hide) layer from map button -->
+                                    <PrimeButton 
+                                        v-else
+                                        icon="pi pi-eye-slash"
+                                        severity="danger"
+                                        variant="text" rounded 
+                                        v-tooltip.bottom="'Show layer on map'"
+                                        @click="showLayerOnMap(slotProps?.option)"
+                                    />
+                                </div>
                                 <i class="pi pi-info-circle" v-tooltip.bottom="slotProps?.option?.description"></i>
                             </div>
                         </div>
@@ -95,6 +110,19 @@ export default {
                 mapStore.hideLayer(layerInfo.id);
             } catch (error) {
                 this.$toast.add({ severity: "error", summary: "Datalayer hide failed!", detail: `Something went wrong: "${error}".` , life: 3000 });
+            }
+        },
+        async removeLayerFromDataset(layerInfo) {
+            try {
+                const dataSetStore = useDataSetStore();
+                const removeDataLayerFromDataSetResponse = await dataSetStore.removeLayer(layerInfo.id);
+                if(removeDataLayerFromDataSetResponse?.success) {
+                    this.$toast.add({ severity: "success", summary: "Success", detail: "The datalayer has been successfully removed from the dataset!", life: 3000 });
+                } else {
+                    this.$toast.add({ severity: "error", summary: "Datalayer remove failed!", detail: `Something went wrong on the backend: "${removeDataLayerFromDataSetResponse.error}".` , life: 3000 });
+                }
+            } catch (error) {
+                this.$toast.add({ severity: "error", summary: "Datalayer remove failed!", detail: `Something went wrong: "${error}".` , life: 3000 });
             }
         },
         close() {

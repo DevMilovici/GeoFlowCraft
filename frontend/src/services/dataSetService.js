@@ -14,5 +14,14 @@ export default {
     async createDataSet(dataSet) {
         let response = await axios.post(`${API_URL}/dataset`, dataSet);
         return response.data;
+    },
+    async removeDataLayer(dataSetId, dataLayerId) {
+        let response = await axios.delete(`${API_URL}/dataset/datalayer`, {
+            data: {
+                dataSetId: dataSetId,
+                dataLayerId: dataLayerId
+            }
+        });
+        return response.data;
     }
 }
