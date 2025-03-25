@@ -52,6 +52,30 @@ async function addDataLayer(dataSetId, dataLayerId) {
     }
 }
 
+async function removeDataLayer(dataSetId, dataLayerId) {
+    try {
+        let dataSet = await DataSetModel.findById(dataSetId);
+        if(!dataSet) {
+            throw `Error removing dataLayer (${dataLayerId}) from dataSet (${dataSetId}): DataSet doesn't exist!`
+        }
+        let dataLayer = await DataLayerModel.findById(dataLayerId);
+        if(!dataLayer) {
+            throw `Error removing dataLayer (${dataLayerId}) from dataSet (${dataSetId}): DataLayer doesn't exist!`
+        }
+        
+        let indexOfDataLayerInDataSet = dataSet.layers.findIndex(layerItemId => layerItemId == dataLayerId);
+        if(indexOfDataLayerInDataSet > -1) {
+            dataSet.layers.splice(indexOfDataLayerInDataSet, 1);
+        }
+
+        return await dataSet.save();
+    } catch (error) {
+        console.log('Error removing dataLayer from dataSet');
+        console.log(error);
+        throw error;
+    }
+}
+
 async function createDataSet(name, description) {
     try {
         let newDataSet = new DataSetModel({ name: name, description: description });
@@ -79,6 +103,7 @@ module.exports = {
     getDataSets,
     getDataSet,
     addDataLayer,
+    removeDataLayer,
     createDataSet,
     deleteDataSet
 }

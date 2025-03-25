@@ -53,6 +53,19 @@ async function createDataSet(request, response) {
     }
 }
 
+async function removeDataLayer(request, response) {
+    try {
+        let dataSetId = request.body.dataSetId;
+        let dataLayerId = request.body.dataLayerId;
+
+        const result = await dataSetService.removeDataLayer(dataSetId, dataLayerId);
+
+        response.status(200).json({ success: true, dataSet: result });
+    } catch (error) {
+        response.status(200).json(controllerUtils.getInternalError(error));
+    }
+}
+
 async function updateDataSet(request, response) {
     try {
         throw new Error("not implemented");
@@ -77,5 +90,6 @@ module.exports = {
     getDataSet,
     createDataSet,
     updateDataSet,
+    removeDataLayer,
     deleteDataSet
 }

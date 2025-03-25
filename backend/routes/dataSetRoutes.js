@@ -7,6 +7,7 @@ router.get('/', dataSetController.getDataSets);
 router.get('/:id', dataSetController.getDataSet);
 router.post('/', dataSetController.createDataSet);
 router.put('/', dataSetController.updateDataSet);
+router.delete('/datalayer', dataSetController.removeDataLayer);
 router.delete('/', dataSetController.deleteDataSet);
 
 module.exports = router;
