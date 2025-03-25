@@ -17,7 +17,7 @@
                 optionLabel="name" fluid class="w-full"
             >
                 <template #option="slotProps">
-                    <div class="flex items-center">
+                    <div class="flex items-center w-full">
                         <div>{{ slotProps.option.name }}</div>
                     </div>
                 </template>

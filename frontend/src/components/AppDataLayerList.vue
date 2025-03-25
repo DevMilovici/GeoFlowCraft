@@ -21,7 +21,7 @@
                                 icon="pi pi-times" 
                                 variant="text" rounded 
                                 severity="danger"
-                                v-tooltip.left="'Remove layer'"
+                                v-tooltip.left="'Remove layer from map'"
                                 @click="removeLayer(slotProps.option.get('id'))"
                             />
                         </div>
