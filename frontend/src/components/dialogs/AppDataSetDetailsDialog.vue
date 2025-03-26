@@ -17,7 +17,8 @@
                 >
                     <template #option="slotProps">
                         <div class="w-full flex flex-row gap-2 items-center justify-between">
-                            <div>{{ slotProps?.option?.name }}</div>
+                            <div v-if="slotProps?.option?.name?.length >= 19" v-tooltip.bottom="slotProps?.option?.name" class="truncate">{{ slotProps?.option?.name }}</div>
+                            <div v-else :v-tooltip.bottom="slotProps?.option?.name" class="truncate">{{ slotProps?.option?.name }}</div>
                             <div class="flex flex-row items-center">
                                 <!-- Remove layer from dataset -->
                                 <div>

@@ -15,7 +15,8 @@
             >
                 <template #option="slotProps">
                     <div class="w-full flex flex-row gap-2 justify-between items-center">
-                        <div>{{ slotProps.option.get("name") }}</div>
+                        <div v-if="slotProps.option.get('name').length > 19" v-tooltip.left="slotProps.option.get('name')" class="truncate">{{ slotProps.option.get("name") }}</div>
+                        <div v-else>{{ slotProps.option.get("name") }}</div>
                         <div>
                             <PrimeButton 
                                 icon="pi pi-times" 
