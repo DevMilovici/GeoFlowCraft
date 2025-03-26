@@ -58,14 +58,17 @@
                     <PrimeToast />
                     <PrimeButton rounded type="button" icon="pi pi-plus" severity="success" size="small"
                         v-tooltip.bottom="'Add new layer'" variant="text" 
-                        @click="showCreateDataLayerCatalog" />
+                        @click="showCreateDataLayerDialog" />
                     <PrimeButton rounded type="button" icon="pi pi-search-plus" severity="success" size="small"
                         v-tooltip.bottom="'Add existing layer'" variant="text" 
-                        @click="" />
+                        @click="showAddExistingDataLayer" />
                 </div>
             </div>
         </div>
-        <div class="flex justify-end">
+        <div class="flex justify-between">
+            <PrimeButton rounded type="button" icon="pi pi-trash" severity="danger" size="large" 
+                v-tooltip.right="'Delete dataset'"
+                @click="showDeleteDataSetConfirmDialog" />
             <PrimeButton type="button" label="Close" severity="danger" @click="close"></PrimeButton>
         </div>
     </PrimeDialog>
@@ -92,7 +95,7 @@ export default {
         ...mapState(useMapStore, ["visibleLayers"])
     },
     methods: {
-        showCreateDataLayerCatalog() {
+        showCreateDataLayerDialog() {
             const dialogStore = useDialogStore();
             dialogStore.showDataLayerCreateCatalog();
         },
@@ -124,6 +127,17 @@ export default {
             } catch (error) {
                 this.$toast.add({ severity: "error", summary: "Datalayer remove failed!", detail: `Something went wrong: "${error}".` , life: 3000 });
             }
+        },
+        async showDeleteDataSetConfirmDialog() {
+            const dialogStore = useDialogStore();
+            dialogStore.showConfirmDialog({
+                title: "Confirm action",
+                message: "Are you sure you want to delete this dataset?", 
+                event: "CONFIRM_DELETE_SELECTED_DATASET" // TODO: Create an enum of events
+            });
+        },
+        async showAddExistingDataLayer() {
+
         },
         close() {
             const dialogStore = useDialogStore();

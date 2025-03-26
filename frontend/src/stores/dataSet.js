@@ -17,6 +17,26 @@ export default defineStore('dataSet', {
 
       return response;
     },
+    async deleteDataSet(dataSetId) {
+      let response = null;
+      let dataSetIdToDelete = dataSetId ?? this.selectedDataSet?.id;
+
+      if(dataSetIdToDelete) {
+        response = await dataSetService.deleteDataSet(dataSetIdToDelete);
+      }
+
+      if(response?.success) {
+        let newDataSets = this.dataSets.filter((ds) => ds.id != dataSetIdToDelete);
+        this.dataSets.length = 0;
+        this.dataSets.push(...newDataSets);
+      }
+
+      if(dataSetIdToDelete == this.selectedDataSet?.id) {
+        this.selectedDataSet = null;
+      }
+
+      return response;
+    },
     setDataSets(dataSets) {
       this.dataSets.length = 0;
       this.dataSets.push(...dataSets);

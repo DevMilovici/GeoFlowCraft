@@ -8,6 +8,7 @@
       <AppDataLayerList />
     </div>
     <!-- Dialogs -->
+    <AppConfirmDialog @confirm-yes="onConfirmYes" @confirm-no="onConfirmNo" />
     <AppDataSetCreateDialog @created-data-set="onDataSetCreated" />
     <AppDataSetDetailsDialog />
     <AppDataLayerCreateDialog @created-data-layer="onDataLayerCreated"/>
@@ -19,7 +20,10 @@
 <script>
 
 import useMapStore from "@/stores/map";
+import useDialogStore from "@/stores/dialog";
+import useDataSetStore from "@/stores/dataSet";
 
+import AppConfirmDialog from "@/components/dialogs/AppConfirmDialog.vue";
 import AppDataSetList from "../components/AppDataSetList.vue";
 import AppDataSetCreateDialog from "../components/dialogs/AppDataSetCreateDialog.vue";
 import AppDataSetDetailsDialog from "@/components/dialogs/AppDataSetDetailsDialog.vue";
@@ -29,6 +33,7 @@ import AppDataLayerCreateDialog from "@/components/dialogs/AppDataLayerCreateDia
 export default {
   name: "HomeView",
   components: { 
+    AppConfirmDialog,
     AppDataSetList,
     AppDataSetCreateDialog, AppDataSetDetailsDialog,
     AppDataLayerList,
@@ -48,6 +53,39 @@ export default {
     },
     onDataLayerCreated() {
       this.$toast.add({ severity: "success", summary: "Success", detail: "The datalayer has been successfully created!", life: 3000 });
+    },
+    async onConfirmYes() {
+      const dialogStore = useDialogStore();
+      try {        
+        dialogStore.confirmDialogIsLoading = true;
+        
+        const event = dialogStore.confirmDialogInfo.event;
+        switch (event) {
+          case "CONFIRM_DELETE_SELECTED_DATASET":
+            const dataSetStore = useDataSetStore();
+            const deleteResult = await dataSetStore.deleteDataSet();
+
+            if(deleteResult?.success) {
+              this.$toast.add({ severity: "success", summary: "Success", detail: "The dataset has been successfully deleted!", life: 3000 });
+              dialogStore.hideDataSetDetailsDialog();
+            } else {
+              this.$toast.add({ severity: "error", summary: "Error", detail: deleteResult.message ?? "Something went wrong!" , life: 3000 });
+            }
+            break;
+          default:
+            console.error("Unknown event!")
+            break;
+        }
+      } catch (error) {
+        this.$toast.add({ severity: "error", summary: "Error", detail: deleteResult.message ?? "Something went wrong!" , life: 3000 });
+      } finally {
+        dialogStore.confirmDialogIsLoading = false;
+      }
+      dialogStore.hideConfirmDialog();
+    },
+    onConfirmNo() {
+      const dialogStore = useDialogStore();
+      dialogStore.hideConfirmDialog();
     }
   }
 }
