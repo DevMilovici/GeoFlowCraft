@@ -77,8 +77,13 @@ async function updateDataSet(request, response) {
 async function deleteDataSet(request, response) {
     try {
         let dataSetName = request.body.name;
+        let dataSetId = request.body.id;
 
-        await dataSetService.deleteDataSet(dataSetName);
+        if(dataSetName) {
+            await dataSetService.deleteDataSetByName(dataSetName);
+        } else if(dataSetId) {
+            await dataSetService.deleteDataSetById(dataSetId);
+        }
         response.status(200).json({ success: true });
     } catch (error) {
         response.status(200).json(controllerUtils.getInternalError(error));

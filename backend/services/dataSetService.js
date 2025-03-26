@@ -81,7 +81,12 @@ async function createDataSet(name, description) {
         let newDataSet = new DataSetModel({ name: name, description: description });
         let result = await newDataSet.save();
  
-        return result;
+        return {
+            id: result._id,
+            name: result.name,
+            description: result.description,
+            layers: result.layers
+        };
     } catch (error) {
         console.log('Error creating dataSet');
         console.log(error);
@@ -89,7 +94,17 @@ async function createDataSet(name, description) {
     }
 }
 
-async function deleteDataSet(name) {
+async function deleteDataSetById(id) {
+    try {
+        await DataSetModel.findByIdAndDelete(id);
+    } catch (error) {
+        console.log('Error deleting dataSet');
+        console.log(error);
+        throw error;
+    }
+}
+
+async function deleteDataSetByName(name) {
     try {
         await DataSetModel.deleteOne({ name: name});
     } catch (error) {
@@ -105,5 +120,6 @@ module.exports = {
     addDataLayer,
     removeDataLayer,
     createDataSet,
-    deleteDataSet
+    deleteDataSetByName,
+    deleteDataSetById
 }
