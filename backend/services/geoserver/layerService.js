@@ -15,13 +15,15 @@ async function getLayers() {
 
 async function createLayer(layerDetails) {
     try {
-        // TODO: CoverageStore OR DataStore
+        let response = null;
         const storeType = layerDetails.store.type;
+        let url = null;
+        let payload = null;
         switch (storeType) {
             case "coverage":
-                const url = `${geoserverConfig.url}/rest/workspaces/${layerDetails.workspaceName}/coveragestores/${layerDetails.store.name}/coverages`;
+                url = `${geoserverConfig.url}/rest/workspaces/${layerDetails.workspaceName}/coveragestores/${layerDetails.store.name}/coverages`;
         
-                const payload = {
+                payload = {
                     coverage: {
                         name: layerDetails.layer.name,
                         title: layerDetails.layer.name, // optional
@@ -30,9 +32,24 @@ async function createLayer(layerDetails) {
                     }
                 };
         
-                const response = await axios.post(url, payload, getGeoserverConfig());
+                response = await axios.post(url, payload, getGeoserverConfig());
                 
                 return response.data;
+            case "datastore":
+                url = `${geoserverConfig.url}/rest/workspaces/${layerDetails.workspaceName}/datastores/${layerDetails.store.name}/featuretypes`;
+
+                payload = {
+                    featureType: {
+                        name: layerDetails.layer.name,
+                        title: layerDetails.layer.name, // Optional
+                        // nativeCRS: 'EPSG:4326', // Optional. Replace with the correct CRS of your shapefile
+                        // srs: 'EPSG:4326', // Optional. Replace with the correct CRS of your shapefile
+                        enabled: true
+                    }
+                };
+                response = await axios.post(url, payload, getGeoserverConfig());
+
+                break;
             default:
                 throw "Unknown store type!"
         }

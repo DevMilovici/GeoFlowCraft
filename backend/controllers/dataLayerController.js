@@ -10,6 +10,8 @@ const fs = require("fs");
 const Readable = require("stream").Readable;
 const { NodeSSH } = require("node-ssh");
 const axios = require('axios');
+const extractZIP = require('extract-zip');
+const path = require('path');
 
 async function getDataLayers(request, response) {
     try {
@@ -50,7 +52,6 @@ async function createDataLayer(request, response) {
             throw "DataLayer's 'content' should have at least one item";
         }
         
-        let fileIndex = 0;
         // for (const layerContentItem of layerContent) {
         let layerContentItem = layerContent[0];
         // 1. Create base upload path if it doesn't exist
@@ -63,25 +64,61 @@ async function createDataLayer(request, response) {
         switch (layerContentItem.format?.toLowerCase()) {
             case "tiff/base64":
                 fileExtension = "tiff";
-                fileContentBuffer = Buffer.from(layerContentItem.data, "base64");
+                break;
+            case "x-zip-compressed/base64":
+                fileExtension = "zip";
                 break;
             default:
-                throw `Unknown file[${fileIndex}] content format: '${layerContentItem.format.toLowerCase()}'`
+                throw `Unknown file content format: '${layerContentItem.format.toLowerCase()}'`
         }
         
         // 3. Save file locally
-        const filename = `${newDataLayerId}_${fileIndex}.${fileExtension}`;
+        fileContentBuffer = Buffer.from(layerContentItem.data, "base64");
+        const filenameWithoutExtension = `${newDataLayerId}`;
+        let filename = `${newDataLayerId}.${fileExtension}`;
         const localFilePath = `${serverConfig.baseUploadPath}/${filename}`;
-        console.log(`Saving file[${fileIndex}] ('${localFilePath}') locally...`);
+        console.log(`Saving file '${localFilePath}' locally...`);
         var readable = new Readable();
         readable.push(fileContentBuffer);
         readable.push(null);
         readable.pipe(fs.createWriteStream(localFilePath));
-        
-        // 4. Upload file to GeoServer
-        const geoserverFilePath = `${geoserverConfig.vmBaseRemotePath}/${filename}`;
-        console.log(`Uploading file[${fileIndex}] ('${geoserverFilePath}') to GeoServer's filesystem...`)
-        await uploadFileToHost(geoserverConfig.ssh, localFilePath, geoserverFilePath);
+        let geoServerPath = null
+        // 4. Upload to GeoServer
+        switch (fileExtension) {
+            case "tiff":
+                // Upload file
+                const geoserverFilePath = `${geoserverConfig.vmBaseRemotePath}/${filename}`;
+                geoServerPath = geoserverFilePath;
+                console.log(`Uploading file ('${geoserverFilePath}') to GeoServer's filesystem...`);
+                await uploadFileToHost(geoserverConfig.ssh, localFilePath, geoserverFilePath);
+                break;
+            case "zip":
+                // Unzip to directory
+                const unzipPath = `${serverConfig.baseUploadPath}/${filenameWithoutExtension}`;
+                // PS: 'extract-zip' requires absolute path
+                console.log(`Unziping file ('${localFilePath}') locally to ('${path.resolve(unzipPath)}')...`);
+                await extractZIP(localFilePath, { dir: path.resolve(unzipPath) });
+
+                // Rename all the files in the directory
+                console.log(`Rename files in the directory '${unzipPath}' to have base name as '${filenameWithoutExtension}'`);
+                renameAllFilesInDirectory(unzipPath, `layer_${filenameWithoutExtension}`);
+
+                // Detecting if we have a shapefile
+                console.log(`Searching for .shp file...`);
+                filename = findFirstShpFile(unzipPath);
+                if(filename) {
+                    console.log(`.shp file detected: '${filename}'`);
+                }
+
+                const geoserverDirectoryPath = `${geoserverConfig.vmBaseRemotePath}/${filenameWithoutExtension}`;
+                geoServerPath = geoserverDirectoryPath;
+                console.log(`Uploading directory ('${geoserverDirectoryPath}') to GeoServer's filesystem...`);
+                // Upload directory
+                await uploadDirectoryToHost(geoserverConfig.ssh, unzipPath, geoserverDirectoryPath);
+                break;
+            default:
+                break;
+        }
 
         // 5. Create workspace
         const workspaceName = request.body.geoserver?.workspace ?? geoserverConfig.defaultWorkspace;
@@ -102,15 +139,17 @@ async function createDataLayer(request, response) {
                 case "tiff":
                     storeType = "GeoTIFF"
                     break;
+                case "zip":
+                    storeType = "Shapefile";
+                    break;
                 default:
-                    throw `Unknown file extension[${fileIndex}]: '${fileExtension}'`;
+                    throw `Unknown file extension: '${fileExtension}'`;
             }
         }
 
         let payload = null;
         switch (storeType) {
             case "GeoTIFF":
-                // TODO: What if 
                 storeCreateUrl = `${geoserverConfig.url}/rest/workspaces/${workspaceName}/coveragestores`;
                 payload = {
                     coverageStore: {
@@ -121,6 +160,21 @@ async function createDataLayer(request, response) {
                         enabled: true
                     },
                 };
+                break;
+            case "Shapefile":
+                storeCreateUrl = `${geoserverConfig.url}/rest/workspaces/${workspaceName}/datastores`;
+                payload = {
+                    dataStore: {
+                        name: storeName,
+                        connectionParameters: {
+                            entry: [
+                                { '@key': 'url', $: `file:${geoserverConfig.baseRemotePath}/${filenameWithoutExtension}/${filename}` },
+                            ],
+                        },
+                        type: 'Shapefile',
+                        enabled: true
+                    }
+                }
                 break;
             default:
                 throw `Unknown store type: '${storeType}'`;
@@ -137,7 +191,7 @@ async function createDataLayer(request, response) {
         );
 
         // 7. Create layer
-        const layerName = request.body.geoserver?.layer?.name ?? `layer_${newDataLayerId}`;
+        const layerName = `layer_${newDataLayerId}`;
         let layerFormat = null;
         let layerSource = null;
         console.log(`Creating layer '${layerName}'...`)
@@ -155,6 +209,20 @@ async function createDataLayer(request, response) {
                         name: layerName
                     }
                 });
+                break;
+            case "Shapefile":
+                layerFormat = "image/png"
+                layerSource = "wms";
+                await layerService.createLayer({
+                    workspaceName: workspaceName,
+                    store: {
+                        name: storeName,
+                        type: "datastore"
+                    },
+                    layer: {
+                        name: layerName
+                    }
+                })
                 break;
             default:
                 throw `Unknown store type: '${storeType}'`;
@@ -185,7 +253,7 @@ async function createDataLayer(request, response) {
                 },
                 files: [
                     {
-                        path: geoserverFilePath
+                        path: geoServerPath
                     }
                 ]}
             }
@@ -223,6 +291,132 @@ async function uploadFileToHost(hostConfig, localFilePath, remoteFilePath) {
         throw error;
     } finally {
         sshClient.dispose();
+    }
+}
+
+async function uploadDirectoryToHost(hostConfig, localDirPath, remoteDirPath) {
+    const sshClient = new NodeSSH();
+    try {
+        await sshClient.connect(hostConfig);
+        console.log(`Connected to host server '${hostConfig.host}'.`);
+
+        await sshClient.putDirectory(localDirPath, remoteDirPath, {
+            recursive: true,
+            concurrency: 5, // Adjust concurrency based on performance needs
+        });
+
+        console.log(`Directory uploaded to host server '${hostConfig.host}':`, remoteDirPath);
+    } catch (error) {
+        console.error(`Error uploading directory to host '${hostConfig.host}':`, error.message);
+        throw error;
+    } finally {
+        sshClient.dispose();
+    }
+}
+
+function findFirstShpFile(directory) {
+    try {
+        const files = fs.readdirSync(directory);
+        for (const file of files) {
+            if (path.extname(file).toLowerCase() === '.shp') {
+                return file;
+            }
+        }
+        return null;
+    } catch (err) {
+        console.error('Error reading directory:', err);
+        return null;
+    }
+}
+
+/**
+ * Renames a file
+ * @param {string} oldPath - Current file path
+ * @param {string} newName - New filename (with or without extension)
+ * @param {boolean} [keepExtension=true] - Whether to preserve original extension
+ * @returns {Promise<string>} New file path
+ */
+async function renameFile(oldPath, newName, keepExtension = true) {
+    try {
+        const dir = path.dirname(oldPath);
+        let finalName = newName;
+        
+        if (keepExtension) {
+            const ext = path.extname(oldPath);
+            // Remove any extension the user might have provided
+            finalName = path.basename(newName, path.extname(newName)) + ext;
+        }
+        
+        const newPath = path.join(dir, finalName);
+        await fs.rename(oldPath, newPath);
+        return newPath;
+    } catch (err) {
+        console.error(`Error renaming ${oldPath} to ${newName}:`, err);
+        throw err;
+    }
+}
+
+/**
+ * Synchronously renames all files in a directory to a new base name while keeping extensions
+ * @param {string} directory - Path to the directory
+ * @param {string} newBaseName - New base name for all files
+ * @returns {Array} Array of objects containing {oldName, newName} for each renamed file
+ */
+function renameAllFilesInDirectory(directory, newBaseName) {
+    const results = [];
+    
+    try {
+        // Get all files in directory
+        const files = fs.readdirSync(directory);
+        
+        // Counter for multiple files with same extension
+        let counter = 1;
+        const usedExtensions = new Set();
+        
+        files.forEach(file => {
+            const oldPath = path.join(directory, file);
+            
+            // Skip directories
+            if (fs.statSync(oldPath).isDirectory()) {
+                return;
+            }
+            
+            const ext = path.extname(file);
+            let finalNewName = newBaseName;
+            
+            // Handle duplicate extensions by adding a number
+            if (usedExtensions.has(ext)) {
+                finalNewName = `${newBaseName}_${counter++}`;
+            } else {
+                usedExtensions.add(ext);
+            }
+            
+            // Add original extension
+            finalNewName += ext;
+            
+            const newPath = path.join(directory, finalNewName);
+            
+            try {
+                fs.renameSync(oldPath, newPath);
+                results.push({
+                    oldName: file,
+                    newName: finalNewName,
+                    success: true
+                });
+            } catch (err) {
+                results.push({
+                    oldName: file,
+                    newName: finalNewName,
+                    success: false,
+                    error: err.message
+                });
+            }
+        });
+        
+        return results;
+    } catch (err) {
+        console.error(`Error processing directory ${directory}:`, err);
+        throw err;
     }
 }
 
