@@ -4,7 +4,10 @@ export default defineStore('dialog', {
     state: () => ({
         dataSetCreateDialogVisible: false,
         dataSetDetailsDialogVisible: false,
-        dataLayerCreateDialogVisible: false
+        dataLayerCreateDialogVisible: false,
+        confirmDialogVisible: false,
+        confirmDialogInfo: null,
+        confirmDialogIsLoading: false
     }),
     actions: {
         // DataSetCreateDialog
@@ -27,6 +30,15 @@ export default defineStore('dialog', {
         },
         hideDataLayerCreateCatalog() {
             this.dataLayerCreateDialogVisible = false;
-        }
+        },
+        // ConfirmDialog
+        showConfirmDialog(confirmInfo) {
+            this.confirmDialogInfo = confirmInfo;
+            this.confirmDialogVisible = true;
+        },
+        hideConfirmDialog() {
+            this.confirmDialogVisible = false;
+            this.confirmDialogInfo = null;
+        },
     }
 })
