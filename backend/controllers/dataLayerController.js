@@ -134,8 +134,8 @@ async function createDataLayer(request, response) {
                 await importCSVToPostGIS(
                     localFilePath, 
                     layerName,
-                    layerContentItem.srs,
-                    layerContentItem.latColumn, layerContentItem.lonColumn, 
+                    layerContentItem.srs ?? 'EPSG:4326',
+                    layerContentItem.latColumn ?? 'lat', layerContentItem.lonColumn ?? 'lon', 
                     layerContentItem.otherColumns
                 );
                 break;
@@ -285,12 +285,12 @@ async function createDataLayer(request, response) {
                         nillable: false
                     },
                     {
-                        name: layerContentItem.latColumn || 'lat',
+                        name: layerContentItem.latColumn ?? 'lat',
                         binding: "java.lang.Double",
                         nillable: true
                     },
                     {
-                        name: layerContentItem.lonColumn || 'lon',
+                        name: layerContentItem.lonColumn ?? 'lon',
                         binding: "java.lang.Double",
                         nillable: true
                     }
@@ -326,8 +326,8 @@ async function createDataLayer(request, response) {
                         name: layerName,
                         title: layerName
                     },
-                    nativeCRS: layerContentItem.srs || 'EPSG:4326',
-                    srs: layerContentItem.srs || 'EPSG:4326',
+                    nativeCRS: layerContentItem.srs ?? 'EPSG:4326',
+                    srs: layerContentItem.srs ?? 'EPSG:4326',
                     attributes: {
                         attribute: layerAttributes
                     }
@@ -400,9 +400,9 @@ async function importCSVToPostGIS(csvFilePath, tableName, srs, latColumn, lonCol
 
     try {
         let queryCreateTable = `CREATE TABLE ${tableName}`;
-        queryCreateTable += `(id SERIAL PRIMARY KEY, geom GEOMETRY(POINT, ${srs.split(":")[1] || '4326'})`
-        queryCreateTable += `, ${latColumn || 'lat'} FLOAT`
-        queryCreateTable += `, ${lonColumn || 'lon'} FLOAT`;
+        queryCreateTable += `(id SERIAL PRIMARY KEY, geom GEOMETRY(POINT, ${srs.split(":")[1] ?? '4326'})`
+        queryCreateTable += `, ${latColumn} FLOAT`
+        queryCreateTable += `, ${lonColumn} FLOAT`;
 
         if(otherColumns?.length > 0) {
             for (const otherColumn of otherColumns) {
@@ -435,7 +435,7 @@ async function importCSVToPostGIS(csvFilePath, tableName, srs, latColumn, lonCol
                 let values = [lat, lon];
 
                 let queryInsertColumns = `INSERT INTO ${tableName} (geom, lat, lon`;
-                let queryInsertValues = `VALUES (ST_SetSRID(ST_MakePoint($1, $2), ${srs.split(":")[1] || '4326'}), $1, $2`;
+                let queryInsertValues = `VALUES (ST_SetSRID(ST_MakePoint($1, $2), ${srs.split(":")[1] ?? '4326'}), $1, $2`;
 
                 let columnIndex = 3;
                 if(otherColumns?.length > 0) {
