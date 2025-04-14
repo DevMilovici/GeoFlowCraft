@@ -5,6 +5,7 @@ const workspaceService = require("../services/geoserver/workspaceService");
 const layerService = require("../services/geoserver/layerService");
 const serverConfig = require("../config/serverConfig");
 const geoserverConfig = require("../config/geoserverConfig");
+const postgresConfig = require("../config/postgresConfig");
 
 const fs = require("fs");
 const Readable = require("stream").Readable;
@@ -12,6 +13,8 @@ const { NodeSSH } = require("node-ssh");
 const axios = require('axios');
 const extractZIP = require('extract-zip');
 const path = require('path');
+const { Client } = require('pg');
+const csv = require('csv-parser');
 
 async function getDataLayers(request, response) {
     try {
@@ -34,12 +37,13 @@ async function getDataLayer(request, response) {
 }
 
 async function createDataLayer(request, response) {
+    let newDataLayerId = null;
     try {
         let dataLayerName = request.body.name;
         let dataLayerDescription = request.body.description;
         
         console.log(`Saving partial DataLayer ('${dataLayerName}') to database...`);
-        const newDataLayerId = await dataLayerService.createDataLayer({
+        newDataLayerId = await dataLayerService.createDataLayer({
             name: dataLayerName,
             description: dataLayerDescription
         });
@@ -68,6 +72,9 @@ async function createDataLayer(request, response) {
             case "x-zip-compressed/base64":
                 fileExtension = "zip";
                 break;
+                case "csv/base64":
+                fileExtension = "csv";
+                break;
             default:
                 throw `Unknown file content format: '${layerContentItem.format.toLowerCase()}'`
         }
@@ -82,15 +89,16 @@ async function createDataLayer(request, response) {
         readable.push(fileContentBuffer);
         readable.push(null);
         readable.pipe(fs.createWriteStream(localFilePath));
-        let geoServerPath = null
-        // 4. Upload to GeoServer
+        
+        // 4. Upload to GeoServer / Postgres (PostGIS)
+        let geoServerPath = null;
+        let layerName = `layer_${newDataLayerId}`;
         switch (fileExtension) {
             case "tiff":
                 // Upload file
-                const geoserverFilePath = `${geoserverConfig.vmBaseRemotePath}/${filename}`;
-                geoServerPath = geoserverFilePath;
-                console.log(`Uploading file ('${geoserverFilePath}') to GeoServer's filesystem...`);
-                await uploadFileToHost(geoserverConfig.ssh, localFilePath, geoserverFilePath);
+                geoServerPath = `${geoserverConfig.vmBaseRemotePath}/${filename}`;
+                console.log(`Uploading file ('${geoServerPath}') to GeoServer's filesystem...`);
+                await uploadFileToHost(geoserverConfig.ssh, localFilePath, geoServerPath);
                 break;
             case "zip":
                 // Unzip to directory
@@ -116,8 +124,23 @@ async function createDataLayer(request, response) {
                 // Upload directory
                 await uploadDirectoryToHost(geoserverConfig.ssh, unzipPath, geoserverDirectoryPath);
                 break;
-            default:
+            case "csv":
+                // Upload file
+                geoServerPath = `${geoserverConfig.vmBaseRemotePath}/${filename}`;
+                console.log(`Uploading file ('${geoServerPath}') to GeoServer's filesystem...`);
+                await uploadFileToHost(geoserverConfig.ssh, localFilePath, geoServerPath);
+                // Publish to postgres (postgis) DB
+                console.log(`Importing .csv to '${layerName}' postgres table...`);
+                await importCSVToPostGIS(
+                    localFilePath, 
+                    layerName,
+                    layerContentItem.srs,
+                    layerContentItem.latColumn, layerContentItem.lonColumn, 
+                    layerContentItem.otherColumns
+                );
                 break;
+            default:
+                throw `Unknown file extension: '${fileExtension}'`;
         }
 
         // 5. Create workspace
@@ -141,6 +164,9 @@ async function createDataLayer(request, response) {
                     break;
                 case "zip":
                     storeType = "Shapefile";
+                    break;
+                case "csv":
+                    storeType = "PostGIS";
                     break;
                 default:
                     throw `Unknown file extension: '${fileExtension}'`;
@@ -176,6 +202,32 @@ async function createDataLayer(request, response) {
                     }
                 }
                 break;
+            case "PostGIS":
+                storeCreateUrl = `${geoserverConfig.url}/rest/workspaces/${workspaceName}/datastores`;
+                payload = {
+                    dataStore: {
+                        name: storeName,
+                        type: 'PostGIS',
+                        enabled: true,
+                        connectionParameters: {
+                            entry: [
+                                { "@key": "host", "$": postgresConfig.host },
+                                { "@key": "port", "$": postgresConfig.port.toString() },
+                                { "@key": "database", "$": postgresConfig.database },
+                                { "@key": "user", "$": postgresConfig.user },
+                                { "@key": "passwd", "$": postgresConfig.password },
+                                { "@key": "schema", "$": "public" },
+                                { "@key": "Expose primary keys", "$": "true" },
+                                { "@key": "Estimated extends", "$": "true" },
+                                { "@key": "validate connections", "$": "true" },
+                                { "@key": "Loose bbox", "$": "true" },
+                                { "@key": "preparedStatements", "$": "false" }
+                            ]
+                        }
+                    }
+                };
+
+                break;
             default:
                 throw `Unknown store type: '${storeType}'`;
         }
@@ -191,7 +243,6 @@ async function createDataLayer(request, response) {
         );
 
         // 7. Create layer
-        const layerName = `layer_${newDataLayerId}`;
         let layerFormat = null;
         let layerSource = null;
         console.log(`Creating layer '${layerName}'...`)
@@ -223,6 +274,64 @@ async function createDataLayer(request, response) {
                         name: layerName
                     }
                 })
+                break;
+            case "PostGIS":
+                layerFormat = "image/png";
+                layerSource = "wms";
+                let layerAttributes = [
+                    {
+                        name: "geom",
+                        binding: "org.locationtech.jts.geom.Point",
+                        nillable: false
+                    },
+                    {
+                        name: layerContentItem.latColumn || 'lat',
+                        binding: "java.lang.Double",
+                        nillable: true
+                    },
+                    {
+                        name: layerContentItem.lonColumn || 'lon',
+                        binding: "java.lang.Double",
+                        nillable: true
+                    }
+                ];
+                if(layerContentItem.otherColumns?.length > 0) {
+                    for (const otherColumn of layerContentItem.otherColumns) {
+                        try {                            
+                            let binding = null;
+                            switch (otherColumn.type) {
+                                case "FLOAT":
+                                    binding = "java.lang.Double";
+                                    break;
+                                default:
+                                    throw `Unknown attribute type '${otherColumn.type}'`;
+                            }
+                            layerAttributes.push({
+                                name: otherColumn.key,
+                                binding: binding,
+                                nillable: true
+                            });
+                        } catch (error) {
+                            console.log(error);
+                        }
+                    }
+                }
+                await layerService.createLayer({
+                    workspaceName,
+                    store: {
+                        name: storeName,
+                        type: "datastore"
+                    },
+                    layer: {
+                        name: layerName,
+                        title: layerName
+                    },
+                    nativeCRS: layerContentItem.srs || 'EPSG:4326',
+                    srs: layerContentItem.srs || 'EPSG:4326',
+                    attributes: {
+                        attribute: layerAttributes
+                    }
+                });
                 break;
             default:
                 throw `Unknown store type: '${storeType}'`;
@@ -274,6 +383,87 @@ async function createDataLayer(request, response) {
     } catch (error) {
         console.log(error);
         response.status(200).json(controllerUtils.getInternalError(error));
+        try {
+            if(newDataLayerId) {
+                console.log("Deleting the partial layer...");
+                await dataLayerService.deleteDataLayer({ id: newDataLayerId });
+            }
+        } catch (error) {
+            console.log(error);    
+        }
+    }
+}
+
+async function importCSVToPostGIS(csvFilePath, tableName, srs, latColumn, lonColumn, otherColumns) {
+    const client = new Client(postgresConfig);
+    await client.connect();
+
+    try {
+        let queryCreateTable = `CREATE TABLE ${tableName}`;
+        queryCreateTable += `(id SERIAL PRIMARY KEY, geom GEOMETRY(POINT, ${srs.split(":")[1] || '4326'})`
+        queryCreateTable += `, ${latColumn || 'lat'} FLOAT`
+        queryCreateTable += `, ${lonColumn || 'lon'} FLOAT`;
+
+        if(otherColumns?.length > 0) {
+            for (const otherColumn of otherColumns) {
+                switch(otherColumn.type) {
+                    case 'FLOAT':
+                        queryCreateTable += `, ${otherColumn.key} FLOAT`
+                        break;
+                    default:
+                        throw `Column type '${otherColumn.type}' not implemented`;
+                }
+            }
+        }
+
+        queryCreateTable += `);`;
+
+        // Create table
+        await client.query(queryCreateTable);
+
+        // Read CSV and insert data
+        const stream = fs.createReadStream(csvFilePath)
+            .pipe(csv())
+            .on('data', async (row) => {
+                const lat = row[`${latColumn}`];
+                const lon = row[`${lonColumn}`];
+
+                if (!lat || !lon) {
+                    console.warn('Skipping row with missing coordinates:', row);
+                    return;
+                }
+                let values = [lat, lon];
+
+                let queryInsertColumns = `INSERT INTO ${tableName} (geom, lat, lon`;
+                let queryInsertValues = `VALUES (ST_SetSRID(ST_MakePoint($1, $2), ${srs.split(":")[1] || '4326'}), $1, $2`;
+
+                let columnIndex = 3;
+                if(otherColumns?.length > 0) {
+                    for(const otherColumn of otherColumns) {
+                        queryInsertColumns += `, ${otherColumn.key}`
+                        queryInsertValues += `, $${columnIndex++}`;
+                        values.push(row[`${otherColumn.key}`]);
+                    }
+                }
+                queryInsertColumns += `)`;
+                queryInsertValues += `)`;
+                queryInsert = `${queryInsertColumns} ${queryInsertValues}`;
+                // console.log(queryInsert)
+                // console.log(values);
+
+                await client.query(queryInsert, values);
+            });
+
+        await new Promise((resolve) => stream.on('end', resolve));
+
+        // Create spatial index
+        await client.query(`
+            CREATE INDEX idx_${tableName}_geom ON ${tableName} USING GIST(geom);
+        `);
+
+        return tableName;
+    } finally {
+        await client.end();
     }
 }
 

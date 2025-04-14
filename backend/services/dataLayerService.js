@@ -70,9 +70,22 @@ async function updateDataLayer(dataLayerDetails) {
     }
 }
 
+async function deleteDataLayer(dataLayerDetails) {
+    try {
+        const dataLayer = await DataLayerModel.findById(dataLayerDetails.id);
+        if(!dataLayer)
+            return;
+
+        await dataLayer.deleteOne();
+    } catch (error) {
+        throw error;
+    }
+}
+
 module.exports = {
     getDataLayers,
     getDataLayer,
     createDataLayer,
-    updateDataLayer
+    updateDataLayer,
+    deleteDataLayer
 }

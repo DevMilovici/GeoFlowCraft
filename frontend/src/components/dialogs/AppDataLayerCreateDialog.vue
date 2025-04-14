@@ -112,6 +112,9 @@ export default {
                     case "application/x-zip-compressed":
                         this.file.format = "x-zip-compressed/base64"
                         break;
+                    case "text/csv":
+                        this.file.format = "csv/base64";
+                        break;
                     default:
                         throw `The format "${file.type}" is not supported.`;
                 }

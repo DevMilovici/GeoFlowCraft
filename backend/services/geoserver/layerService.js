@@ -41,14 +41,16 @@ async function createLayer(layerDetails) {
                 payload = {
                     featureType: {
                         name: layerDetails.layer.name,
-                        title: layerDetails.layer.name, // Optional
-                        // nativeCRS: 'EPSG:4326', // Optional. Replace with the correct CRS of your shapefile
-                        // srs: 'EPSG:4326', // Optional. Replace with the correct CRS of your shapefile
                         enabled: true
                     }
                 };
-                response = await axios.post(url, payload, getGeoserverConfig());
+                if(layerDetails.layer.title) payload.featureType.title = layerDetails.layer.title;
+                if(layerDetails.nativeName) payload.featureType.nativeName = layerDetails.nativeName;
+                if(layerDetails.nativeCRS) payload.featureType.nativeCRS = layerDetails.nativeCRS;
+                if(layerDetails.srs) payload.featureType.srs = layerDetails.srs;
+                if(layerDetails.attributes) payload.featureType.attributes = layerDetails.attributes;
 
+                response = await axios.post(url, payload, getGeoserverConfig());
                 break;
             default:
                 throw "Unknown store type!"

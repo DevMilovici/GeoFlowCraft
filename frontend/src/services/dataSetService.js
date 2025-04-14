@@ -23,6 +23,13 @@ export default {
         });
         return response.data;
     },
+    async addDataLayer(dataSetId, dataLayerId) {
+        let response = await axios.put(`${API_URL}/dataset/datalayer`, {
+            dataSetId: dataSetId,
+            dataLayerId: dataLayerId
+        });
+        return response.data;
+    },
     async removeDataLayer(dataSetId, dataLayerId) {
         let response = await axios.delete(`${API_URL}/dataset/datalayer`, {
             data: {
