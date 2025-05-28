@@ -7,7 +7,7 @@ const DataSetModel = require("./db/models/dataSet");
 
 try {
     app.listen(serverConfig.listenPort, async () => {
-        console.log("Connection to DB...");
+        console.log("Connecting to DB...");
         await mongoose.connect(dbConfig.url, dbConfig.options);
         console.log("Connected to DB!")
     
