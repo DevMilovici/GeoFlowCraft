@@ -6,5 +6,6 @@ const router = express.Router();
 router.get("/", dataLayerController.getDataLayers);
 router.get("/:id", dataLayerController.getDataLayer);
 router.post("/", dataLayerController.createDataLayer);
+router.delete('/datalayer', dataLayerController.deleteDataLayer);
 
 module.exports = router;

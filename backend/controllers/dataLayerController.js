@@ -394,6 +394,14 @@ async function createDataLayer(request, response) {
     }
 }
 
+async function deleteDataLayer(request, response) {
+    try {
+        throw "Not implemented: deleteDataLayer!"
+    } catch (error) {
+        response.status(200).json(controllerUtils.getInternalError(error));
+    }
+}
+
 async function importCSVToPostGIS(csvFilePath, tableName, srs, latColumn, lonColumn, otherColumns) {
     const client = new Client(postgresConfig);
     await client.connect();
@@ -435,7 +443,8 @@ async function importCSVToPostGIS(csvFilePath, tableName, srs, latColumn, lonCol
                 let values = [lat, lon];
 
                 let queryInsertColumns = `INSERT INTO ${tableName} (geom, lat, lon`;
-                let queryInsertValues = `VALUES (ST_SetSRID(ST_MakePoint($1, $2), ${srs.split(":")[1] ?? '4326'}), $1, $2`;
+                let queryInsertValues = `VALUES (ST_SetSRID(ST_MakePoint($2, $1), ${srs.split(":")[1] ?? '4326'}), $1, $2`;
+                // let queryInsertValues = `VALUES(ST_GeomFromText('POINT(${lon} ${lat})', 4326), $1, $2`;
 
                 let columnIndex = 3;
                 if(otherColumns?.length > 0) {
@@ -613,5 +622,6 @@ function renameAllFilesInDirectory(directory, newBaseName) {
 module.exports = {
     getDataLayers,
     getDataLayer,
-    createDataLayer
+    createDataLayer,
+    deleteDataLayer
 }
