@@ -431,6 +431,7 @@ async function importCSVToPostGIS(csvFilePath, tableName, srs, latColumn, lonCol
 
         // Read CSV and insert data
         const stream = fs.createReadStream(csvFilePath)
+            .pipe((await import('strip-bom-stream')).default())
             .pipe(csv())
             .on('data', async (row) => {
                 const lat = row[`${latColumn}`];
