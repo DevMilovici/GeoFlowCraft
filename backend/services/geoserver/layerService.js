@@ -61,6 +61,16 @@ async function createLayer(layerDetails) {
     }
 }
 
+async function deleteLayer(layerDetails) {
+    try {
+        let url = `${geoserverConfig.url}/rest/workspaces/${layerDetails.workspaceName}/layers/${layerDetails.layerName}`;
+        let response = await axios.delete(url, getGeoserverConfig());
+    } catch (error) {
+        console.error('Error deleting layer:', error.response?.data || error.message);
+        throw new Error(error.response?.data || error.message);
+    }
+}
+
 function getGeoserverConfig() {
     return {
         auth: geoserverConfig.auth,
@@ -70,5 +80,6 @@ function getGeoserverConfig() {
 
 module.exports = {
     createLayer,
+    deleteLayer,
     getLayers
 }

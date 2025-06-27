@@ -2,6 +2,7 @@ const controllerUtils = require("../utils/controllerUtils");
 const dataLayerService = require("../services/dataLayerService");
 const dataSetService = require("../services/dataSetService");
 const workspaceService = require("../services/geoserver/workspaceService");
+const storeService = require("../services/geoserver/storeService");
 const layerService = require("../services/geoserver/layerService");
 const serverConfig = require("../config/serverConfig");
 const geoserverConfig = require("../config/geoserverConfig");
@@ -396,7 +397,77 @@ async function createDataLayer(request, response) {
 
 async function deleteDataLayer(request, response) {
     try {
-        throw "Not implemented: deleteDataLayer!"
+        let dataLayerId = request.body.id;
+        console.log(dataLayerId);
+
+        let dataSets = await dataSetService.getDataSets({ layerId: dataLayerId });
+        console.log(`Removing DataLayer from DataSets...`);
+
+        // Remove the layer from all datasets
+        if(dataSets?.length > 0) {
+            for (const dataSet of dataSets) {
+                console.log(`Removing DataLayer ${dataLayerId} from DataSet ${dataSet.id}...`);
+                await dataSetService.removeDataLayer(dataSet.id, dataLayerId);
+            }
+        }
+
+        let dataLayer = await dataLayerService.getDataLayer(dataLayerId);
+
+        if(!dataLayer) return;
+
+        // Delete the layer files
+        try {            
+            console.log("Deleting DataLayerFiles...")
+            console.log(dataLayer.geoserver?.files);
+            if(dataLayer.geoserver?.files?.length > 0) {
+                for (const file of dataLayer.geoserver.files) {
+                    console.log(`Deleting ${file.path}`)
+                    await deleteFileOnHost(geoserverConfig.ssh, file.path);
+                }
+            }
+        } catch (error) {
+            console.log(error);
+        }
+
+        // Delete the layer from geoserver
+        try {
+            console.log(`Deleting DataLayer from GeoServer: ${dataLayer.geoserver?.layer?.name}`);
+            await layerService.deleteLayer({
+                workspaceName: dataLayer.geoserver.workspace.name,
+                layerName: dataLayer.geoserver.layer.name
+            });
+        } catch (error) {
+            console.log(error);
+        }
+
+        // Delete the layer's store from geoserver
+        console.log(`Deleting DataLayer's store from GeoServer: ${dataLayer.geoserver.store.name}`);
+        let storeType = null;
+        switch(dataLayer.geoserver.store.type){
+            case "GeoTIFF":
+                storeType = "coverage";
+                break;
+            case "Shapefile":
+            case "PostGIS":
+                storeType = "datastore";
+                break;
+            default:
+                throw "Unknown store type!"
+        }
+        try {
+            await storeService.deleteStore(dataLayer.geoserver.workspace.name, dataLayer.geoserver.store.name, storeType);
+        } catch (error) {
+            console.log(error)
+        }
+        
+        // Delete the layer's table from postgis
+        // TODO
+
+        // Delete the layer from database
+        console.log(`Deleting DataLayer from database: ${dataLayerId}`);
+        await dataLayerService.deleteDataLayer({ id: dataLayerId });
+
+        response.status(200).json({ success: true });
     } catch (error) {
         response.status(200).json(controllerUtils.getInternalError(error));
     }
@@ -512,6 +583,22 @@ async function uploadDirectoryToHost(hostConfig, localDirPath, remoteDirPath) {
     } finally {
         sshClient.dispose();
     }
+}
+
+async function deleteFileOnHost(hostConfig, remoteFilePath) {
+    const sshClient = new NodeSSH();
+    try {
+        await sshClient.connect(hostConfig);
+        console.log(`Connected to host server '${hostConfig.host}'.`);
+
+        console.log(`Deleting file/directory on host '${hostConfig.host}': ${remoteFilePath}`)
+        let result = await sshClient.execCommand(`rm -rf "${remoteFilePath}"`);
+    } catch (error) {
+        console.error(`Error deleting file/directory to host '${hostConfig.host}':`, error.message);
+        throw error;
+    } finally {
+        sshClient.dispose();
+    } 
 }
 
 function findFirstShpFile(directory) {

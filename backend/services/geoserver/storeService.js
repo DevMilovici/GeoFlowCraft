@@ -94,6 +94,29 @@ async function getStore(workspaceName, storeName, storeType) {
     }
 }
 
+async function deleteStore(workspaceName, storeName, storeType) {
+    let url = null;
+
+    try {
+        switch (storeType) {
+            case "coverage":
+                url = `${geoserverConfig.url}/rest/workspaces/${workspaceName}/coveragestores/${storeName}?recurse=true`;
+                break;
+            case "datastore":
+                url = `${geoserverConfig.url}/rest/workspaces/${workspaceName}/datastores/${storeName}?recurse=true`;
+                break;
+            default:
+                throw "Unknown store type!";
+        }
+
+        console.log(url);
+        let response = await axios.delete(url, getGeoserverConfig());
+    } catch (error) {
+        console.error('Error deleting store:', error.response?.data || error.message);
+        throw new Error(error.response?.data || error.message);
+    }
+}
+
 function getGeoserverConfig() {
     return {
         auth: geoserverConfig.auth,
@@ -122,5 +145,6 @@ module.exports = {
     createCoverageStore,
     createDataStore,
     getStore,
-    getStores
+    getStores,
+    deleteStore
 }

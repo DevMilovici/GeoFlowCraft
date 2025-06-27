@@ -1,11 +1,21 @@
 const DataLayerModel = require("../db/models/dataLayer");
 const DataSetModel = require("../db/models/dataSet");
 
-async function getDataSets() {
+async function getDataSets(filter) {
     try {
         let result = [];
+        const query = {};
+        
+        if(filter) {
+            if(filter.name) {
+                query.name = { $regex: filter.name, $options: 'i' };
+            }
+            if(filter.layerId) {
+                query.layers = filter.layerId;
+            }
+        }
 
-        let dataSets = await DataSetModel.find();
+        let dataSets = await DataSetModel.find(query);
         if(dataSets?.length > 0) {
             for (const dataSet of dataSets) {
                 result.push({
