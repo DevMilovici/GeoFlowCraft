@@ -134,7 +134,7 @@ export default {
             dialogStore.showConfirmDialog({
                 title: "Confirm action",
                 message: "Are you sure you want to delete this dataset?", 
-                event: "CONFIRM_DELETE_SELECTED_DATASET" // TODO: Create an enum of events
+                event: "DELETE_SELECTED_DATASET" // TODO: Create an enum of events
             });
         },
         async showAddExistingDataLayer() {

@@ -11,6 +11,7 @@
     <AppConfirmDialog @confirm-yes="onConfirmYes" @confirm-no="onConfirmNo" />
     <AppDataSetCreateDialog @created-data-set="onDataSetCreated" />
     <AppDataSetDetailsDialog />
+    <AppDataLayersDialog />
     <AppDataLayerCreateDialog @created-data-layer="onDataLayerCreated"/>
     <PrimeToast />
   </div>
@@ -22,11 +23,13 @@
 import useMapStore from "@/stores/map";
 import useDialogStore from "@/stores/dialog";
 import useDataSetStore from "@/stores/dataSet";
+import useDataLayerStore from "@/stores/dataLayer";
 
 import AppConfirmDialog from "@/components/dialogs/AppConfirmDialog.vue";
 import AppDataSetList from "../components/AppDataSetList.vue";
 import AppDataSetCreateDialog from "../components/dialogs/AppDataSetCreateDialog.vue";
 import AppDataSetDetailsDialog from "@/components/dialogs/AppDataSetDetailsDialog.vue";
+import AppDataLayersDialog from "@/components/dialogs/AppDataLayersDialog.vue";
 import AppDataLayerList from "@/components/AppDataLayerList.vue";
 import AppDataLayerCreateDialog from "@/components/dialogs/AppDataLayerCreateDialog.vue";
 
@@ -37,7 +40,7 @@ export default {
     AppDataSetList,
     AppDataSetCreateDialog, AppDataSetDetailsDialog,
     AppDataLayerList,
-    AppDataLayerCreateDialog
+    AppDataLayersDialog, AppDataLayerCreateDialog
   },
   data() {
     return {}
@@ -61,7 +64,7 @@ export default {
         
         const event = dialogStore.confirmDialogInfo.event;
         switch (event) {
-          case "CONFIRM_DELETE_SELECTED_DATASET":
+          case "DELETE_SELECTED_DATASET": // TODO: Create an enum of events
             const dataSetStore = useDataSetStore();
             const deleteResult = await dataSetStore.deleteDataSet();
 
@@ -72,12 +75,24 @@ export default {
               this.$toast.add({ severity: "error", summary: "Error", detail: deleteResult.message ?? "Something went wrong!" , life: 3000 });
             }
             break;
+          case "DELETE_SELECTED_DATALAYER": // TODO: Create an enum of events
+            const dataLayerStore = useDataLayerStore();  
+            const mapStore = useMapStore();
+            await mapStore.hideLayer(dataLayerStore.selectedDataLayer.id);
+            const response = await dataLayerStore.deleteDataLayer(dataLayerStore.selectedDataLayer.id);
+            if(response?.success) {
+                this.$toast.add({ severity: "success", summary: "Success", detail: "The datalayer has been successfully deleted!", life: 3000 });
+            } else {
+                this.$toast.add({ severity: "error", summary: "Failed deleting datalayer!", detail: `Something went wrong on the backend side: ${response.error}`, life: 3000 });
+            }
+            break;
           default:
             console.error("Unknown event!")
             break;
         }
       } catch (error) {
-        this.$toast.add({ severity: "error", summary: "Error", detail: deleteResult.message ?? "Something went wrong!" , life: 3000 });
+        console.log(error);
+        this.$toast.add({ severity: "error", summary: "Error", detail: error.message ?? "Something went wrong!" , life: 3000 });
       } finally {
         dialogStore.confirmDialogIsLoading = false;
       }

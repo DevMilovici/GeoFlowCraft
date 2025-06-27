@@ -4,6 +4,7 @@ export default defineStore('dialog', {
     state: () => ({
         dataSetCreateDialogVisible: false,
         dataSetDetailsDialogVisible: false,
+        dataLayersDialogVisible: false,
         dataLayerCreateDialogVisible: false,
         confirmDialogVisible: false,
         confirmDialogInfo: null,
@@ -23,6 +24,13 @@ export default defineStore('dialog', {
         },
         hideDataSetDetailsDialog() {
             this.dataSetDetailsDialogVisible = false;
+        },
+        // DataLayersDialog
+        showDataLayersDialog() {
+            this.dataLayersDialogVisible = true;
+        },
+        hideDataLayersDialog() {
+            this.dataLayersDialogVisible = false;
         },
         // DataLayerCreateDialog
         showDataLayerCreateCatalog() {

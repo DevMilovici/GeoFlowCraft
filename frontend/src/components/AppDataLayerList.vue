@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col items-center justify-center p-1">
+    <div class="flex flex-col gap-2 items-center justify-center p-1">
         <div class="flex flex-row gap-2 items-center justify-between p-2">
             <div class="flex flex-row gap-2">
                 <i class="pi pi-map" style="font-size: 1.5rem;"></i>
@@ -30,7 +30,9 @@
                 </template>
             </PrimeListBox>
         </div>
-        
+        <div>
+            <PrimeButton label="Datalayers catalog" icon="pi pi-map" @click="showDataLayersCatalog"/>
+        </div>
     </div>
 </template>
 
@@ -39,6 +41,8 @@
 import { mapStores } from 'pinia';
 
 import useMapStore from "@/stores/map";
+import useDialogStore from "@/stores/dialog";
+import useDataLayerStore from "@/stores/dataLayer";
 
 export default {
     name: "AppDataLayerList",
@@ -48,7 +52,7 @@ export default {
         }
     },
     computed: {
-        ...mapStores(useMapStore),
+        ...mapStores(useMapStore, useDialogStore, useDataLayerStore),
         visibleLayers() {
             return this.mapStore?.map
                 ?.getLayers()
@@ -70,6 +74,10 @@ export default {
             } catch (error) {
                 this.$toast.add({ severity: "error", summary: "Datalayer removing failed!", detail: `Something went wrong: "${error}".` , life: 3000 });
             }
+        },
+        async showDataLayersCatalog() {
+            await this.dataLayerStore.loadDataLayers();
+            this.dialogStore.showDataLayersDialog();
         }
     }
 }

@@ -14,5 +14,13 @@ export default {
     async createDataLayer(dataLayer) {
         let response = await axios.post(`${API_URL}/datalayer`, dataLayer);
         return response.data;
+    },
+    async deleteDataLayer(dataLayerId) {
+        let response = await axios.delete(`${API_URL}/datalayer`, {
+            data: {
+                id: dataLayerId
+            }
+        });
+        return response.data;
     }
 }
