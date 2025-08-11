@@ -40,8 +40,13 @@ async function getDataLayer(request, response) {
 async function createDataLayer(request, response) {
     let newDataLayerId = null;
     try {
-        let dataLayerName = request.body.name;
-        let dataLayerDescription = request.body.description;
+        const file = request.file;
+        const requestBodyMetadata = JSON.parse(request.body.metadata);
+        if(!file) {
+            throw "No file uploaded under the field 'file'."
+        }
+        let dataLayerName = requestBodyMetadata.name;
+        let dataLayerDescription = requestBodyMetadata.description;
         
         console.log(`Saving partial DataLayer ('${dataLayerName}') to database...`);
         newDataLayerId = await dataLayerService.createDataLayer({
@@ -52,20 +57,16 @@ async function createDataLayer(request, response) {
             throw "Something went wrong. Couldn't save new data layer to database.";
         }
         
-        let layerContent = request.body.content;
+        let layerContent = requestBodyMetadata.content;
         if(!layerContent || layerContent.length < 1) {
             throw "DataLayer's 'content' should have at least one item";
         }
         
         // for (const layerContentItem of layerContent) {
         let layerContentItem = layerContent[0];
-        // 1. Create base upload path if it doesn't exist
-        if(!fs.existsSync(serverConfig.baseUploadPath)) {
-            fs.mkdirSync(serverConfig.baseUploadPath);
-        }
-        // 2. Extract file extension and content
+
+        // 1. Extract file extension and content
         let fileExtension = null;
-        let fileContentBuffer = null;
         switch (layerContentItem.format?.toLowerCase()) {
             case "tiff/base64":
                 fileExtension = "tiff";
@@ -80,18 +81,14 @@ async function createDataLayer(request, response) {
                 throw `Unknown file content format: '${layerContentItem.format.toLowerCase()}'`
         }
         
-        // 3. Save file locally
-        fileContentBuffer = Buffer.from(layerContentItem.data, "base64");
+        // 2. Rename file
         const filenameWithoutExtension = `${newDataLayerId}`;
         let filename = `${newDataLayerId}.${fileExtension}`;
         const localFilePath = `${serverConfig.baseUploadPath}/${filename}`;
-        console.log(`Saving file '${localFilePath}' locally...`);
-        var readable = new Readable();
-        readable.push(fileContentBuffer);
-        readable.push(null);
-        readable.pipe(fs.createWriteStream(localFilePath));
+        console.log(`Renaming the file '${serverConfig.baseUploadPath}/${file.originalname}' to '${localFilePath}'...`);
+        fs.renameSync(`${serverConfig.baseUploadPath}/${file.originalname}`, localFilePath)
         
-        // 4. Upload to GeoServer / Postgres (PostGIS)
+        // 3. Upload to GeoServer / Postgres (PostGIS)
         let geoServerPath = null;
         let layerName = `layer_${newDataLayerId}`;
         switch (fileExtension) {
@@ -144,8 +141,8 @@ async function createDataLayer(request, response) {
                 throw `Unknown file extension: '${fileExtension}'`;
         }
 
-        // 5. Create workspace
-        const workspaceName = request.body.geoserver?.workspace ?? geoserverConfig.defaultWorkspace;
+        // 4. Create workspace
+        const workspaceName = requestBodyMetadata.geoserver?.workspace ?? geoserverConfig.defaultWorkspace;
         let workspace = await workspaceService.getWorkspace(workspaceName);
         if(!workspace) {
             console.log(`Creating GeoServer workspace '${workspaceName}'...`);
@@ -154,9 +151,9 @@ async function createDataLayer(request, response) {
             });
         }
 
-        // 6. Create store
-        const storeName = request.body.geoserver?.store?.name ?? `store_${newDataLayerId}`;
-        let storeType = request.body.geoserver?.store?.type;
+        // 5. Create store
+        const storeName = requestBodyMetadata.geoserver?.store?.name ?? `store_${newDataLayerId}`;
+        let storeType = requestBodyMetadata.geoserver?.store?.type;
         let storeCreateUrl = null;
         if(!storeType) {
             switch (fileExtension) {
@@ -243,7 +240,7 @@ async function createDataLayer(request, response) {
             }
         );
 
-        // 7. Create layer
+        // 6. Create layer
         let layerFormat = null;
         let layerSource = null;
         console.log(`Creating layer '${layerName}'...`)
@@ -338,7 +335,7 @@ async function createDataLayer(request, response) {
                 throw `Unknown store type: '${storeType}'`;
         }
 
-        // 8. Update DataLayer from the database
+        // 7. Update DataLayer from the database
         console.log(`Updating database DataLayer ('${dataLayerName}') with missing information...`);
         await dataLayerService.updateDataLayer({
             id: newDataLayerId,
@@ -371,8 +368,8 @@ async function createDataLayer(request, response) {
 
         let newCreatedDataLayer = await dataLayerService.getDataLayer(newDataLayerId);
 
-        // 9. Add dataLayer to dataSet
-        let dataSetId = request.body.dataSetId;
+        // 8. Add dataLayer to dataSet
+        let dataSetId = requestBodyMetadata.dataSetId;
         if(dataSetId) {
             console.log(`Adding DataLayer ('${newDataLayerId}') to DataSet ('${dataSetId}')...`);
             await dataSetService.addDataLayer(dataSetId, newDataLayerId)
