@@ -28,13 +28,13 @@
                     <span class="text-gray-400">File source</span>
                     <PrimeFileUpload 
                         ref="fileupload" mode="basic" 
-                        name="files[]" 
+                        name="files[]"
                         @select="onFileSelected($event)" 
                         :disabled="isLoading"
                     />
                     <PrimeIftaLabel>
                         <PrimeInputText
-                            v-model="fileFormat"
+                            v-model="fileType"
                             name="format"
                             type="text" fluid
                             :disabled="true" autocomplete="off"
@@ -80,11 +80,9 @@ export default {
                 description: "",
                 format: ""
             },
+            fileType: "",
             fileFormat: "",
-            file: {
-                contentBase64: null,
-                format: null
-            },
+            file: null,
             resolver: yupResolver(
                 yup.object().shape({
                     name: yup.string()
@@ -107,22 +105,21 @@ export default {
 
                 switch(file.type) {
                     case "image/tiff":
-                        this.file.format = "tiff/base64";
+                        this.fileFormat = "tiff/base64";
                         break;
                     case "application/x-zip-compressed":
-                        this.file.format = "x-zip-compressed/base64"
+                        this.fileFormat = "x-zip-compressed/base64"
                         break;
                     case "text/csv":
-                        this.file.format = "csv/base64";
+                        this.fileFormat = "csv/base64";
                         break;
                     default:
                         throw `The format "${file.type}" is not supported.`;
                 }
-                this.fileFormat = file.type;
-                this.file.contentBase64 = await fileService.toBase64(file);
+                this.fileType = file.type;
+                this.file = file;
             } catch (error) {
-                this.file.format = null;
-                this.file.contentBase64 = null;
+                this.file = null;
                 this.$toast.add({ severity: "error", summary: "File selection error!", detail: `The format "${file.type}" is not supported.`, life: 3000 });
                 event.files.length = 0;
             }
@@ -131,7 +128,7 @@ export default {
             try {
                 this.isLoading = true;
                 if(!valid) return;
-                if(this.file.format == null || this.file.contentBase64 == null) {
+                if(this.file == null) {
                     this.$toast.add({ severity: "error", summary: "Invalid file!", detail: `File source is required.`, life: 3000 });
                     return;
                 }
@@ -143,14 +140,13 @@ export default {
                     description: values.description,
                     content: [
                         {
-                            format: this.file.format,
-                            data: this.file.contentBase64
+                            format: this.fileFormat
                         }
                     ],
                     dataSetId: dataSetStore?.selectedDataSet?.id ?? null
                 };
 
-                const createDataLayerResult = await dataSetStore.createDataLayerForDataSet(request)
+                const createDataLayerResult = await dataSetStore.createDataLayerForDataSet(this.file, request)
                 if(createDataLayerResult?.success) {
                     this.close();
                     this.$emit("createdDataLayer");
@@ -158,7 +154,8 @@ export default {
                     this.$toast.add({ severity: "error", summary: "Datalayer creation failed!", detail: `Something went wrong on the backend: "${createDataLayerResult.error}".` , life: 3000 });
                 }
             } catch (error) {
-                this.$toast.add({ severity: "error", summary: "Datalayer creation failed!", detail: `Something went wrong: "${error}".` , life: 3000 });
+                console.log(error)
+                this.$toast.add({ severity: "error", summary: "Datalayer creation failed!", detail: `Something went wrong: "${error?.response?.data?.message ?? error}".` , life: 3000 });
             } finally {
                 this.isLoading = false;
             }
@@ -178,3 +175,11 @@ export default {
 }
 
 </script>
+
+<style lang="scss">
+
+.p-fileupload span {
+    overflow-x: hidden;
+}
+
+</style>

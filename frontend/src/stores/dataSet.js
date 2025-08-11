@@ -58,8 +58,8 @@ export default defineStore('dataSet', {
       }
       return response;
     },
-    async createDataLayerForDataSet(createDataLayerRequest) {
-      const response = await dataLayerService.createDataLayer(createDataLayerRequest);
+    async createDataLayerForDataSet(file, createDataLayerRequest) {
+      const response = await dataLayerService.createDataLayer(file, createDataLayerRequest);
 
       if(response.success) {
         await this.loadDataSets();

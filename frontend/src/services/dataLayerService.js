@@ -11,8 +11,11 @@ export default {
         let response = await axios.get(`${API_URL}/datalayer/${dataLayerId}`);
         return response.data;
     },
-    async createDataLayer(dataLayer) {
-        let response = await axios.post(`${API_URL}/datalayer`, dataLayer);
+    async createDataLayer(file, dataLayer) {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("metadata", JSON.stringify(dataLayer));
+        let response = await axios.post(`${API_URL}/datalayer`, formData);
         return response.data;
     },
     async deleteDataLayer(dataLayerId) {
