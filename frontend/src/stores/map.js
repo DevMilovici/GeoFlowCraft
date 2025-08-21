@@ -159,7 +159,7 @@ export default defineStore("map", {
             let existingDrawLayer = this.map.getLayers().getArray().find(
                 (layerItem) => layerItem.get("id") == "DRAW_LAYER"
             );
-            console.log(existingDrawLayer)
+
             if(!existingDrawLayer)
                 return;
 
