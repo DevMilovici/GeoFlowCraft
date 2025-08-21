@@ -73,17 +73,19 @@ export default defineStore("map", {
             // TODO: Implement other layer source types
             switch (layerSourceType) {
                 case "wms":
+                    let wmsSource = new TileWMS({
+                        url: dataLayerResponse.dataLayer.geoserver.url + "/wms",
+                        params: {
+                            FORMAT: dataLayerResponse.dataLayer.geoserver.layer.format.name,
+                            LAYERS: dataLayerResponse.dataLayer.geoserver.layer.name
+                        }
+                    });
+
                     layer = new TileLayer({
                         type: "tile",
                         opacity: 100,
                         visible: visible,
-                        source: new TileWMS({
-                            url: dataLayerResponse.dataLayer.geoserver.url + "/wms",
-                            params: {
-                                FORMAT: dataLayerResponse.dataLayer.geoserver.layer.format.name,
-                                LAYERS: dataLayerResponse.dataLayer.geoserver.layer.name
-                            }
-                        }),
+                        source: wmsSource,
                         custom: true,
                         name: dataLayerResponse.dataLayer.name,
                         id: dataLayerResponse.dataLayer.id
