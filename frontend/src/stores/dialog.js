@@ -6,6 +6,15 @@ export default defineStore('dialog', {
         dataSetDetailsDialogVisible: false,
         dataLayersDialogVisible: false,
         dataLayerCreateDialogVisible: false,
+        modelProcessingRequestDialog: {
+            visible: false,
+            isLoading: false,
+            requestInfo: {
+                selectedModel: null,
+                selectedDates: null,
+                geoJson: null
+            }
+        },
         confirmDialogVisible: false,
         confirmDialogInfo: null,
         confirmDialogIsLoading: false
@@ -38,6 +47,18 @@ export default defineStore('dialog', {
         },
         hideDataLayerCreateCatalog() {
             this.dataLayerCreateDialogVisible = false;
+        },
+        // ModelProcessingRequestDialog
+        showModelProcessingRequestDialog(requestInfo) {
+            if(!(requestInfo?.geoJson)) {
+                throw "Missing 'geoJSON' for creating the model processing request!"
+            }
+
+            this.modelProcessingRequestDialog.requestInfo.geoJson = requestInfo.geoJson;
+            this.modelProcessingRequestDialog.visible = true;
+        },
+        hideModelProcessingRequestDialog() {
+            this.modelProcessingRequestDialog.visible = false;
         },
         // ConfirmDialog
         showConfirmDialog(confirmInfo) {

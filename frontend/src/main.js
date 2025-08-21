@@ -17,6 +17,8 @@ import ToastService from 'primevue/toastservice';
 import ListBox from "primevue/listbox";
 import Tooltip from 'primevue/tooltip';
 import Dialog from 'primevue/dialog';
+import Select from 'primevue/select';
+import DatePicker from 'primevue/datepicker';
 
 import 'primeicons/primeicons.css'
 
@@ -39,6 +41,8 @@ app.component("PrimeInputText", InputText);
 app.component("PrimeFloatLabel", FloatLabel);
 app.component("PrimeIftaLabel", IftaLabel);
 app.component("PrimeTextarea", Textarea);
+app.component("PrimeSelect", Select);
+app.component("PrimeDatePicker", DatePicker);
 app.component("PrimeMessage", Message);
 app.component("PrimeFileUpload", FileUpload);
 app.component("PrimeToast", Toast);

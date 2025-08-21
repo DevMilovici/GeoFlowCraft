@@ -13,6 +13,7 @@
     <AppDataSetDetailsDialog />
     <AppDataLayersDialog />
     <AppDataLayerCreateDialog @created-data-layer="onDataLayerCreated"/>
+    <AppModelProcessingRequestDialog />
     <PrimeToast />
   </div>
 
@@ -32,6 +33,7 @@ import AppDataSetDetailsDialog from "@/components/dialogs/AppDataSetDetailsDialo
 import AppDataLayersDialog from "@/components/dialogs/AppDataLayersDialog.vue";
 import AppDataLayerList from "@/components/AppDataLayerList.vue";
 import AppDataLayerCreateDialog from "@/components/dialogs/AppDataLayerCreateDialog.vue";
+import AppModelProcessingRequestDialog from "@/components/dialogs/AppModelProcessingRequestDialog.vue";
 
 export default {
   name: "HomeView",
@@ -40,7 +42,8 @@ export default {
     AppDataSetList,
     AppDataSetCreateDialog, AppDataSetDetailsDialog,
     AppDataLayerList,
-    AppDataLayersDialog, AppDataLayerCreateDialog
+    AppDataLayersDialog, AppDataLayerCreateDialog,
+    AppModelProcessingRequestDialog
   },
   data() {
     return {}
@@ -110,6 +113,7 @@ export default {
       mapStore.enableDrawInteraction("Polygon", this.confirmDrawnAreaForModelProcessing, true);
     },
     confirmDrawnAreaForModelProcessing(drawnFeature) {
+      try {        
         console.log(drawnFeature);
 
         const mapStore = useMapStore();
@@ -122,11 +126,18 @@ export default {
         // TODO: send geojson to model processing
         const geoJson = mapStore.getGeoJsonFromFeature(drawnFeature, "EPSG:4326");
         console.log(geoJson);
-
         setTimeout(() => {
             mapStore.removeDrawLayer();
-        }, 5000)
+        }, 5000);
+
+        const dialogStore = useDialogStore();
+        dialogStore.showModelProcessingRequestDialog({
+          geoJson: geoJson
+        });
+      } catch (error) {
+        this.$toast.add({ severity: "error", summary: "ERROR", detail: error , life: 3000 });
       }
+    }
   }
 }
 </script>
