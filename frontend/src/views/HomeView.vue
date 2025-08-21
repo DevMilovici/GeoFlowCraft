@@ -86,6 +86,9 @@ export default {
                 this.$toast.add({ severity: "error", summary: "Failed deleting datalayer!", detail: `Something went wrong on the backend side: ${response.error}`, life: 3000 });
             }
             break;
+          case "MODEL_PROCESSING_ACTIVATE_DRAW_MODE": // TODO: Create an enum of events
+            this.activateDrawModeForModelProcessing();
+            break;
           default:
             console.error("Unknown event!")
             break;
@@ -101,7 +104,29 @@ export default {
     onConfirmNo() {
       const dialogStore = useDialogStore();
       dialogStore.hideConfirmDialog();
-    }
+    },
+    activateDrawModeForModelProcessing() {
+      const mapStore = useMapStore();
+      mapStore.enableDrawInteraction("Polygon", this.confirmDrawnAreaForModelProcessing, true);
+    },
+    confirmDrawnAreaForModelProcessing(drawnFeature) {
+        console.log(drawnFeature);
+
+        const mapStore = useMapStore();
+        mapStore.disableDrawInteration();
+        mapStore.addDrawLayer(drawnFeature);
+
+        console.log(drawnFeature.getGeometry().getInteriorPoint().getCoordinates())
+
+        // TODO: Display confirm tooltip on map
+        // TODO: send geojson to model processing
+        const geoJson = mapStore.getGeoJsonFromFeature(drawnFeature, "EPSG:4326");
+        console.log(geoJson);
+
+        setTimeout(() => {
+            mapStore.removeDrawLayer();
+        }, 5000)
+      }
   }
 }
 </script>

@@ -10,26 +10,44 @@
                 <RouterLink to="/"><span class="font-bold text-2xl text-teal-400">GeoFlowCraft</span></RouterLink>
             </div>
             <!-- Nav links -->
-            <div class="h-full border border-gray-700">
+            <div class="flex h-full border border-gray-700">
                 <nav class="flex flex-row items-center justify-center">
-                <RouterLink to="/">Home</RouterLink>
-                <RouterLink to="/about">About</RouterLink>
+                    <RouterLink to="/">Home</RouterLink>
+                    <RouterLink to="/about">About</RouterLink>
                 </nav>
             </div>
+            <PrimeButton label="Model processing" icon="pi pi-microchip" 
+                @click="showDrawConfirmDialog"
+            />
         </nav>
     </div>
 </template>
 
 <script>
 import { RouterLink } from 'vue-router'
+import useDialogStore from "@/stores/dialog";
 
 export default {
     name: "AppNavBar",
     components: {
         RouterLink
     },
+    data() {
+        return {}
+    },
     computed: {},
-    methods: {}
+    methods: {
+        showDrawConfirmDialog() {
+            const dialogStore = useDialogStore();
+            dialogStore.showConfirmDialog({
+                title: "Model processing - draw mode activation",
+                message: "Draw mode will be activated. To continue, confirm the activation of draw mode.",
+                noButtonText: "Discard",
+                yesButtonText: "Confirm",
+                event: "MODEL_PROCESSING_ACTIVATE_DRAW_MODE" // TODO: Create an enum of events
+            });
+        }
+    }
 }
 
 </script>
