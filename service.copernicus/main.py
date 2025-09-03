@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timedelta
@@ -11,6 +12,15 @@ logging.basicConfig(level = logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title = "Copernicus Sentinel-2 Download API", version="1.0.0")
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  # Add your frontend URL
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class SearchRequest(BaseModel):
     geojson: Dict[str, Any]
