@@ -6,7 +6,7 @@ export default defineStore('dialog', {
         dataSetDetailsDialogVisible: false,
         dataLayersDialogVisible: false,
         dataLayerCreateDialogVisible: false,
-        modelProcessingRequestDialog: {
+        modelProcessingSearchRequestDialog: {
             visible: false,
             isLoading: false,
             requestInfo: {
@@ -14,6 +14,9 @@ export default defineStore('dialog', {
                 selectedDates: null,
                 geoJson: null
             }
+        },
+        modelProcessingSearchResultsDialog: {
+            visible: false
         },
         confirmDialogVisible: false,
         confirmDialogInfo: null,
@@ -48,17 +51,24 @@ export default defineStore('dialog', {
         hideDataLayerCreateCatalog() {
             this.dataLayerCreateDialogVisible = false;
         },
-        // ModelProcessingRequestDialog
-        showModelProcessingRequestDialog(requestInfo) {
+        // ModelProcessingSearchRequestDialog
+        showModelProcessingSearchRequestDialog(requestInfo) {
             if(!(requestInfo?.geoJson)) {
                 throw "Missing 'geoJSON' for creating the model processing request!"
             }
 
-            this.modelProcessingRequestDialog.requestInfo.geoJson = requestInfo.geoJson;
-            this.modelProcessingRequestDialog.visible = true;
+            this.modelProcessingSearchRequestDialog.requestInfo.geoJson = requestInfo.geoJson;
+            this.modelProcessingSearchRequestDialog.visible = true;
         },
-        hideModelProcessingRequestDialog() {
-            this.modelProcessingRequestDialog.visible = false;
+        hideModelProcessingSearchRequestDialog() {
+            this.modelProcessingSearchRequestDialog.visible = false;
+        },
+        // ModelProcessingSearchResultsDialog
+        showModelProcessingSearchResultsDialog() {
+            this.modelProcessingSearchResultsDialog.visible = true;
+        },
+        hideModelProcessingSearchResultsDialog() {
+            this.modelProcessingSearchResultsDialog.visible = false;
         },
         // ConfirmDialog
         showConfirmDialog(confirmInfo) {

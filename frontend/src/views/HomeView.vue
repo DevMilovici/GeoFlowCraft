@@ -13,7 +13,8 @@
     <AppDataSetDetailsDialog />
     <AppDataLayersDialog />
     <AppDataLayerCreateDialog @created-data-layer="onDataLayerCreated"/>
-    <AppModelProcessingRequestDialog />
+    <AppModelProcessingSearchRequestDialog />
+    <AppModelProcessingSearchResultsDialog />
     <PrimeToast />
   </div>
 
@@ -33,7 +34,8 @@ import AppDataSetDetailsDialog from "@/components/dialogs/AppDataSetDetailsDialo
 import AppDataLayersDialog from "@/components/dialogs/AppDataLayersDialog.vue";
 import AppDataLayerList from "@/components/AppDataLayerList.vue";
 import AppDataLayerCreateDialog from "@/components/dialogs/AppDataLayerCreateDialog.vue";
-import AppModelProcessingRequestDialog from "@/components/dialogs/AppModelProcessingRequestDialog.vue";
+import AppModelProcessingSearchRequestDialog from "@/components/dialogs/AppModelProcessingSearchRequestDialog.vue";
+import AppModelProcessingSearchResultsDialog from "@/components/dialogs/AppModelProcessingSearchResultsDialog.vue";
 
 export default {
   name: "HomeView",
@@ -43,7 +45,7 @@ export default {
     AppDataSetCreateDialog, AppDataSetDetailsDialog,
     AppDataLayerList,
     AppDataLayersDialog, AppDataLayerCreateDialog,
-    AppModelProcessingRequestDialog
+    AppModelProcessingSearchRequestDialog, AppModelProcessingSearchResultsDialog
   },
   data() {
     return {}
@@ -113,25 +115,21 @@ export default {
       mapStore.enableDrawInteraction("Polygon", this.confirmDrawnAreaForModelProcessing, true);
     },
     confirmDrawnAreaForModelProcessing(drawnFeature) {
-      try {        
-        console.log(drawnFeature);
-
+      try {
         const mapStore = useMapStore();
         mapStore.disableDrawInteration();
         mapStore.addDrawLayer(drawnFeature);
-
-        console.log(drawnFeature.getGeometry().getInteriorPoint().getCoordinates())
-
-        // TODO: Display confirm tooltip on map
-        // TODO: send geojson to model processing
+        
+        console.log("TODO: Display confirm tooltip on map")
+        
         const geoJson = mapStore.getGeoJsonFromFeature(drawnFeature, "EPSG:4326");
-        console.log(geoJson);
+        
         setTimeout(() => {
             mapStore.removeDrawLayer();
         }, 5000);
 
         const dialogStore = useDialogStore();
-        dialogStore.showModelProcessingRequestDialog({
+        dialogStore.showModelProcessingSearchRequestDialog({
           geoJson: geoJson
         });
       } catch (error) {
