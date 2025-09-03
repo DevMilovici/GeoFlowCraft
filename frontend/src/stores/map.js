@@ -165,6 +165,41 @@ export default defineStore("map", {
 
             this.map.removeLayer(existingDrawLayer);
         },
+        addVectorLayer(id, coordinates) {
+            const polygon = new Polygon([coordinates]);
+            const vectorLayer = new VectorLayer({
+                source: new VectorSource({
+                    features: [
+                        new Feature({
+                            geometry: polygon
+                        })
+                    ]
+                }),
+                id: id,
+                zIndex: 20000,
+                visible: true,
+                style: new Style({
+                    fill: new StyleFill({
+                        color: "rgba(252, 244, 27, 0.6)",
+                    }),
+                    stroke: new StyleStroke({
+                        color: "rgba(252, 27, 236, 0.6)",
+                        width: 2
+                    })
+                })
+            });
+            this.map.addLayer(vectorLayer);
+        },
+        removeVectorLayer(id) {
+            let existingLayer = this.map.getLayers().getArray().find(
+                (layerItem) => (layerItem.id == id || layerItem.get("id") == id)
+            );
+
+            if(!existingLayer)
+                return;
+
+            this.map.removeLayer(existingLayer);
+        },
         enableDrawInteraction(geometryType = "Polygon", callback = null, measureGeometry = false) {
             const that = this;
             this.draw.source = new VectorSource();
