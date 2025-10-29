@@ -1,0 +1,140 @@
+# ---- Python bytecode / caches ----
+__pycache__/
+*.py[cod]
+*$py.class
+
+# ---- Virtual environments / Python runtimes ----
+.venv/
+venv/
+env/
+ENV/
+.python-version  # pyenv
+
+# ---- Package/build artifacts ----
+.build/
+build/
+dist/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ---- Installer logs ----
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ---- Testing / coverage / profiling ----
+.pytest_cache/
+.coverage
+.coverage.*
+.cache/
+nosetests.xml
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+.pyre/
+.pytype/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pylint.d/
+.ruff_cache/
+
+# ---- Type checkers / linters (misc) ----
+.pyright/
+.pyre_check/
+
+# ---- Jupyter / IPython ----
+.ipynb_checkpoints/
+profile_default/
+ipython_config.py
+
+# ---- Django / Flask / Celery (optional) ----
+# Django
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+*.sqlite3
+media/
+staticfiles/
+
+# Flask
+instance/
+.webassets-cache
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# ---- PyInstaller ----
+*.manifest
+*.spec
+
+# ---- Cython ----
+cython_debug/
+
+# ---- Environment & secrets ----
+.env
+.env.*
+!.env.example
+*.env.local
+*.secret
+*.secrets
+
+# ---- Databases / data dumps (generic) ----
+*.db
+*.sqlite
+*.sqlite3
+*.rdb
+*.mdb
+
+# ---- Logs & runtime files ----
+*.log
+*.pid
+*.pid.lock
+
+# ---- Editors / IDEs ----
+.vscode/
+.idea/
+*.code-workspace
+*.sublime-project
+*.sublime-workspace
+
+# ---- OS-specific junk ----
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# ---- Node (for mixed Python+JS repos) ----
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ---- Misc caches ----
+*.pyre/
+*.mypy_cache/
+
+test_data/
+output/
